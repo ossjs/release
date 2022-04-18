@@ -457,7 +457,7 @@
     supports-color "^8.1.1"
     tslib "^2"
 
-"@oclif/core@1.0.10", "@oclif/core@^1", "@oclif/core@^1.0.10", "@oclif/core@^1.0.8":
+"@oclif/core@1.0.10":
   version "1.0.10"
   resolved "https://registry.npmjs.org/@oclif/core/-/core-1.0.10.tgz"
   integrity sha512-L+IcNU3NoYxwz5hmHfcUlOJ3dpgHRsIj1kAmI9CKEJHq5gBVKlP44Ot179Jke1jKRKX2g9N42izbmlh0SNpkkw==
@@ -480,7 +480,7 @@
     widest-line "^3.1.0"
     wrap-ansi "^7.0.0"
 
-"@oclif/core@^1.2.1", "@oclif/core@^1.3.6", "@oclif/core@^1.6.4":
+"@oclif/core@^1", "@oclif/core@^1.0.8", "@oclif/core@^1.2.1", "@oclif/core@^1.3.6", "@oclif/core@^1.6.4":
   version "1.7.0"
   resolved "https://registry.yarnpkg.com/@oclif/core/-/core-1.7.0.tgz#3b763b53eafa9afbb13cf7cdfeac0f8ddd8ab1af"
   integrity sha512-I4q4qgtnNG7ef4sBDrJhwADdi7RExQV7LnflnXaWZZDiUoqF9AdOjC4jjx40MK0rRrCehCUtPNZBcr3WmxuS4Q==
@@ -520,14 +520,7 @@
   resolved "https://registry.npmjs.org/@oclif/linewrap/-/linewrap-1.0.0.tgz"
   integrity sha512-Ups2dShK52xXa8w6iBWLgcjPJWjais6KPJQq3gQ/88AY6BXoTX+MIGFPrWQO1KLMiQfoTpcLnUwloN4brrVUHw==
 
-"@oclif/plugin-help@^5":
-  version "5.1.10"
-  resolved "https://registry.npmjs.org/@oclif/plugin-help/-/plugin-help-5.1.10.tgz"
-  integrity sha512-ngurn/3kQVCw1Df5TJEURjxU+w7iA9z3Pskw8dJorfnd0Xibe/qlPg+VYV3hB7EhTbV82EVfZ5DhQYD5YvoxeA==
-  dependencies:
-    "@oclif/core" "^1.0.10"
-
-"@oclif/plugin-help@^5.1.11":
+"@oclif/plugin-help@^5", "@oclif/plugin-help@^5.1.11":
   version "5.1.12"
   resolved "https://registry.yarnpkg.com/@oclif/plugin-help/-/plugin-help-5.1.12.tgz#24a18631eb9b22cb55e1a3b8e4f6039fd42727e6"
   integrity sha512-HvH/RubJxqCinP0vUWQLTOboT+SfjfL8h40s+PymkWaldIcXlpoRaJX50vz+SjZIs7uewZwEk8fzLqpF/BWXlg==
