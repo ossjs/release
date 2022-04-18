@@ -3,7 +3,8 @@
     "strict": true,
     "module": "CommonJS",
     "target": "ESNext",
-    "outDir": "./bin"
+    "outDir": "./bin",
+    "baseUrl": "./src"
   },
   "include": ["typings", "src/index.ts"]
 }
