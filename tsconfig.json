@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "module": "CommonJS",
+    "target": "ESNext",
+    "outDir": "./bin"
+  },
+  "include": ["typings", "src/index.ts"]
+}
