@@ -10,6 +10,7 @@
   "scripts": {
     "start": "yarn build -w",
     "build": "tsc",
+    "postbuild": "chmod +x ./bin/index.js",
     "test": "jest"
   },
   "devDependencies": {
