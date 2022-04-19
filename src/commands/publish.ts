@@ -12,7 +12,7 @@ import { createCommit } from '../utils/git/createCommit'
 import { createTag } from '../utils/git/createTag'
 
 export async function publish(config: Config): Promise<void> {
-  console.log('publishing a new release...', config)
+  console.log('preparing for a new release...')
 
   const branchName = getCurrentBranch()
   console.log('branch:', branchName)

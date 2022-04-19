@@ -1,5 +1,6 @@
 import * as path from 'path'
 import { createTeardown } from 'fs-teardown'
+import { initGit } from '../utils'
 
 const cli = path.resolve(__dirname, '../..', 'bin/index.js')
 
@@ -31,8 +32,8 @@ module.exports = {
 }
     `,
   })
-  await fsMock.exec('git init')
-  await fsMock.exec('git remote add origin git@github.com:octocat/test.git')
+  await initGit(fsMock)
+
   await fsMock.exec(`git add . && git commit -m 'feat: new things'`)
 
   const { stderr, stdout } = await fsMock.exec(`${cli} publish`)
