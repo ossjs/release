@@ -1,5 +1,5 @@
-import { run } from '../run'
+import { execAsync } from '../execAsync'
 
-export function getCurrentBranch(): string {
-  return run('git rev-parse --abbrev-ref HEAD')
+export async function getCurrentBranch(): Promise<string> {
+  return execAsync('git rev-parse --abbrev-ref HEAD').then((out) => out.trim())
 }

@@ -18,7 +18,7 @@ export class Publish extends Command {
   static description = 'Publish the package'
 
   public run = async () => {
-    const branchName = getCurrentBranch()
+    const branchName = await getCurrentBranch()
     console.log('preparing release from "%s"...', branchName)
 
     // Get the latest release.
