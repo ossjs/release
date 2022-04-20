@@ -1,5 +1,7 @@
+import * as portfinder from 'portfinder'
 import type { TeardownApi } from 'fs-teardown'
 import type { Git } from 'node-git-server'
+import { invariant } from 'outvariant'
 
 export async function initGit(fsMock: TeardownApi, origin: URL): Promise<void> {
   const remoteUrl = new URL('test.git', origin)
@@ -25,4 +27,30 @@ export async function startGitProvider(provider: Git, url: URL): Promise<void> {
       () => resolve()
     )
   })
+}
+
+export interface Origin {
+  url: URL
+  get(): Promise<URL>
+}
+
+export function createOrigin(): Origin {
+  let url: URL
+
+  const result = {
+    async get(): Promise<URL> {
+      const port = await portfinder.getPortPromise()
+      url = new URL(`http://localhost:${port}/test.git`)
+      return url
+    },
+  }
+
+  Object.defineProperty(result, 'url', {
+    get() {
+      return url
+    },
+    enumerable: true,
+  })
+
+  return result as Origin
 }

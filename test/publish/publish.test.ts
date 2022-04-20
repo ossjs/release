@@ -1,7 +1,7 @@
 import * as path from 'path'
 import { createTeardown } from 'fs-teardown'
 import { Git } from 'node-git-server'
-import { initGit, startGitProvider } from '../utils'
+import { createOrigin, initGit, startGitProvider } from '../utils'
 
 const fsMock = createTeardown({
   rootDir: 'tarm/publish',
@@ -10,7 +10,7 @@ const fsMock = createTeardown({
   },
 })
 
-const origin = new URL('http://localhost:7005')
+const origin = createOrigin()
 
 const gitProvider = new Git(fsMock.resolve('git-provider'), {
   autoCreate: true,
@@ -23,7 +23,7 @@ const cli = path.resolve(__dirname, '../..', 'bin/index.js')
 
 beforeAll(async () => {
   await fsMock.prepare()
-  await startGitProvider(gitProvider, origin)
+  await startGitProvider(gitProvider, await origin.get())
 })
 
 beforeEach(async () => {
@@ -47,7 +47,7 @@ module.exports = {
 }
     `,
   })
-  await initGit(fsMock, origin)
+  await initGit(fsMock, origin.url)
 
   await fsMock.exec(`git add . && git commit -m 'feat: new things'`)
 

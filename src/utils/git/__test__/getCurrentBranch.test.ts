@@ -1,10 +1,10 @@
 import { createTeardown } from 'fs-teardown'
 import { Git } from 'node-git-server'
-import { initGit, startGitProvider } from '../../../../test/utils'
+import { createOrigin, initGit, startGitProvider } from '../../../../test/utils'
 import { execAsync } from '../../execAsync'
 import { getCurrentBranch } from '../getCurrentBranch'
 
-const origin = new URL('http://localhost:3000/test.git')
+const origin = createOrigin()
 
 const fsMock = createTeardown({
   rootDir: 'tarm/get-current-branch',
@@ -19,7 +19,7 @@ gitProvider.on('fetch', (fetch) => fetch.accept())
 
 beforeAll(async () => {
   await fsMock.prepare()
-  await startGitProvider(gitProvider, origin)
+  await startGitProvider(gitProvider, await origin.get())
   execAsync.mockContext({
     cwd: fsMock.resolve(),
   })
@@ -27,7 +27,7 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   await fsMock.reset()
-  await initGit(fsMock, origin)
+  await initGit(fsMock, origin.url)
 })
 
 afterAll(async () => {
