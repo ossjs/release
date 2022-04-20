@@ -1,15 +1,32 @@
 import * as path from 'path'
 import { createTeardown } from 'fs-teardown'
+import { Git } from 'node-git-server'
 import { initGit } from '../utils'
+
+const fsMock = createTeardown({
+  rootDir: 'tarm/publish',
+  paths: {
+    'git-provider': null,
+  },
+})
+
+const origin = new URL('http://localhost:7005')
+
+const gitProvider = new Git(fsMock.resolve('git-provider'), {
+  autoCreate: true,
+})
+
+gitProvider.on('push', (push) => push.accept())
+gitProvider.on('fetch', (fetch) => fetch.accept())
 
 const cli = path.resolve(__dirname, '../..', 'bin/index.js')
 
-const fsMock = createTeardown({
-  rootDir: 'publish',
-})
-
 beforeAll(async () => {
   await fsMock.prepare()
+
+  await new Promise<void>((resolve) => {
+    gitProvider.listen(Number(origin.port), { type: 'http' }, () => resolve())
+  })
 })
 
 beforeEach(async () => {
@@ -18,9 +35,10 @@ beforeEach(async () => {
 
 afterAll(async () => {
   await fsMock.cleanup()
+  await gitProvider.close()
 })
 
-it('publishes a minor version', async () => {
+it('publishes the next minor version', async () => {
   await fsMock.create({
     'package.json': JSON.stringify({
       name: 'test',
@@ -28,21 +46,23 @@ it('publishes a minor version', async () => {
     }),
     'tarn.config.js': `
 module.exports = {
-  script: 'echo 0'
+  script: 'echo "release script input: $RELEASE_VERSION"'
 }
     `,
   })
-  await initGit(fsMock)
+  await initGit(fsMock, origin)
 
   await fsMock.exec(`git add . && git commit -m 'feat: new things'`)
 
   const { stderr, stdout } = await fsMock.exec(`${cli} publish`)
-  expect(stderr).toBe('')
 
-  console.log(stdout)
+  expect(stderr).toBe('')
 
   // Must notify about the next version.
   expect(stdout).toContain('next version: 0.0.0 -> 0.1.0')
+
+  // The release script is provided with the environmental variables.
+  expect(stdout).toContain('release script input: 0.1.0')
 
   // Must bump the "version" in package.json.
   expect(

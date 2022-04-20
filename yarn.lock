@@ -2022,6 +2022,13 @@ natural-compare@^1.4.0:
   resolved "https://registry.yarnpkg.com/natural-compare/-/natural-compare-1.4.0.tgz#4abebfeed7541f2c27acfb29bdbbd15c8d5ba4f7"
   integrity sha1-Sr6/7tdUHywnrPspvbvRXI1bpPc=
 
+node-git-server@^1.0.0-beta.30:
+  version "1.0.0-beta.30"
+  resolved "https://registry.yarnpkg.com/node-git-server/-/node-git-server-1.0.0-beta.30.tgz#a40bbaf10d76e3d2304284dd240871ae1a2fe6ac"
+  integrity sha512-nJ9KoGJ44RdCImRCZzxDEdVZZDPY+tkdUJwaWDGU586oPDbpkeosuT718q2jgqNEBcTr4ADfn+fW8dM72PldqQ==
+  dependencies:
+    through "^2.3.8"
+
 node-int64@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/node-int64/-/node-int64-0.4.0.tgz#87a9065cdb355d3182d8f94ce11188b825c68a3b"
@@ -2474,6 +2481,11 @@ through2@~2.0.0:
   dependencies:
     readable-stream "~2.3.6"
     xtend "~4.0.1"
+
+through@^2.3.8:
+  version "2.3.8"
+  resolved "https://registry.yarnpkg.com/through/-/through-2.3.8.tgz#0dd4c9ffaabc357960b1b724115d7e0e86a2e1f5"
+  integrity sha1-DdTJ/6q8NXlgsbckEV1+Doai4fU=
 
 tmpl@1.0.5:
   version "1.0.5"

@@ -1,6 +1,7 @@
 {
   "name": "tarn-raw",
   "version": "1.0.0",
+  "description": "Release automation made predictable (finally)",
   "main": "index.js",
   "author": "Artem Zakharchenko",
   "license": "MIT",
@@ -17,6 +18,7 @@
     "@types/jest": "^27.4.1",
     "fs-teardown": "^0.3.1",
     "jest": "^27.5.1",
+    "node-git-server": "^1.0.0-beta.30",
     "ts-jest": "^27.1.4",
     "typescript": "^4.6.3"
   },
