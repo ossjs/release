@@ -1,7 +1,7 @@
 import * as path from 'path'
 import { createTeardown } from 'fs-teardown'
 import { Git } from 'node-git-server'
-import { initGit } from '../utils'
+import { initGit, startGitProvider } from '../utils'
 
 const fsMock = createTeardown({
   rootDir: 'tarm/publish',
@@ -23,10 +23,7 @@ const cli = path.resolve(__dirname, '../..', 'bin/index.js')
 
 beforeAll(async () => {
   await fsMock.prepare()
-
-  await new Promise<void>((resolve) => {
-    gitProvider.listen(Number(origin.port), { type: 'http' }, () => resolve())
-  })
+  await startGitProvider(gitProvider, origin)
 })
 
 beforeEach(async () => {

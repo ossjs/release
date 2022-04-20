@@ -1,5 +1,9 @@
-import { run } from '../run'
+import { execAsync } from '../execAsync'
 
-export function getTags(): string[] {
-  return run('git tag').split('\n')
+/**
+ * Return the list of tags present on the current Git branch.
+ */
+export async function getTags(): Promise<string[]> {
+  const allTags = await execAsync('git tag')
+  return allTags.split('\n').filter(Boolean)
 }

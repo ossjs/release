@@ -22,7 +22,7 @@ export class Publish extends Command {
     console.log('preparing release from "%s"...', branchName)
 
     // Get the latest release.
-    const tags = getTags()
+    const tags = await getTags()
     const latestRelease = getLatestRelease(tags)
 
     if (latestRelease) {
