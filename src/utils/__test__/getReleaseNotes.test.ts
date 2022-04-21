@@ -69,24 +69,37 @@ describe(toMarkdown, () => {
     },
   })
 
-  it('includes issues references in release items', async () => {
+  it('includes both issue and commit reference', async () => {
     const notes = await getReleaseNotes([
       {
+        hash: 'abc123',
         subject: 'feat(api): improves stuff (#1)',
       },
     ] as Commit[])
 
     const markdown = toMarkdown(context, notes)
 
-    expect(markdown).toContain('- **api:** improves stuff (#1)')
+    expect(markdown).toContain('- **api:** improves stuff (#1) (abc123)')
   })
 
   it('retains strict order of release sections', async () => {
     const notes = await getReleaseNotes([
-      { subject: 'fix: second bugfix' },
-      { subject: 'fix: first bugfix' },
-      { subject: 'feat: second feature' },
-      { subject: 'feat: first feature' },
+      {
+        hash: 'abc123',
+        subject: 'fix: second bugfix',
+      },
+      {
+        hash: 'def456',
+        subject: 'fix: first bugfix',
+      },
+      {
+        hash: 'fgh789',
+        subject: 'feat: second feature',
+      },
+      {
+        hash: 'xyz321',
+        subject: 'feat: first feature',
+      },
     ] as Commit[])
     const markdown = toMarkdown(context, notes)
 
@@ -95,12 +108,12 @@ describe(toMarkdown, () => {
 
 ### Features
 
-- second feature
-- first feature
+- second feature (fgh789)
+- first feature (xyz321)
 
 ### Bug Fixes
 
-- second bugfix
-- first bugfix`)
+- second bugfix (abc123)
+- first bugfix (def456)`)
   })
 })

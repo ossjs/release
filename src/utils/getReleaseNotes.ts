@@ -4,7 +4,11 @@ import * as parseCommit from 'conventional-commits-parser'
 import type { Commit as ParsedCommit } from 'conventional-commits-parser'
 import type { ReleaseContext } from './createContext'
 
-export type ReleaseNotes = Map<string, Set<ParsedCommit>>
+export type ParsedCommitWithHash = ParsedCommit & {
+  hash: string
+}
+
+export type ReleaseNotes = Map<string, Set<ParsedCommitWithHash>>
 
 const IGNORE_COMMIT_TYPE = ['chore']
 
@@ -14,26 +18,43 @@ export async function getReleaseNotes(
   const commitParser = parseCommit()
   const through = new PassThrough()
 
+  const commitMap: Record<string, Commit> = {}
+
   for (const commit of commits) {
+    commitMap[commit.subject] = commit
     through.write(commit.subject)
   }
   through.end()
 
-  const releaseNotes: ReleaseNotes = new Map()
+  const releaseNotes: ReleaseNotes = new Map<
+    string,
+    Set<ParsedCommitWithHash>
+  >()
 
   return new Promise((resolve, reject) => {
     through
       .pipe(commitParser)
       .on('error', reject)
-      .on('data', (commit: ParsedCommit) => {
-        const { type, merge } = commit
+      .on('data', (parsedCommit: ParsedCommit) => {
+        const { type, header, merge } = parsedCommit
 
-        if (!type || merge || IGNORE_COMMIT_TYPE.includes(type)) {
+        if (!type || !header || merge || IGNORE_COMMIT_TYPE.includes(type)) {
           return
         }
 
-        const nextCommits = releaseNotes.get(type) || new Set<ParsedCommit>()
-        releaseNotes.set(type, nextCommits.add(commit))
+        const originalCommit = commitMap[header]
+
+        const parsedCommitWithHash: ParsedCommitWithHash = Object.assign(
+          {},
+          parsedCommit,
+          {
+            hash: originalCommit.hash,
+          }
+        )
+
+        const nextCommits =
+          releaseNotes.get(type) || new Set<ParsedCommitWithHash>()
+        releaseNotes.set(type, nextCommits.add(parsedCommitWithHash))
       })
       .on('end', () => {
         resolve(releaseNotes)
@@ -91,11 +112,11 @@ export function toMarkdown(
   return markdown.join('\n')
 }
 
-function createReleaseItem(commit: ParsedCommit): string | undefined {
-  const { subject, scope } = commit
+function createReleaseItem(commit: ParsedCommitWithHash): string | undefined {
+  const { subject, scope, hash } = commit
 
   if (subject) {
-    const commitLine = [scope && `**${scope}:**`, subject]
+    const commitLine = [scope && `**${scope}:**`, subject, `(${hash})`]
       .filter(Boolean)
       .join(' ')
 

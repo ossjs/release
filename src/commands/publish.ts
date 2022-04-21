@@ -35,10 +35,6 @@ export class Publish extends Command {
     const branchName = await getCurrentBranch()
     console.log('preparing release from "%s"...', branchName)
 
-    /**
-     * @todo Check that the repo state is without uncommitted changes.
-     */
-
     // Get the latest release.
     const tags = await getTags()
     const latestRelease = await getLatestRelease(tags)
