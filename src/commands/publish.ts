@@ -156,6 +156,14 @@ export class Publish extends Command {
 
       console.log('created release tag "%s"!', tagResult.data)
 
+      // Generate release notes and create a new release on GitHub.
+      const releaseNotes = await getReleaseNotes(commits)
+      const releaseMarkdown = toMarkdown(context, releaseNotes)
+      console.log('generated release notes:\n\n', releaseMarkdown)
+
+      const releaseUrl = await createRelease(context, releaseMarkdown)
+      console.log('created release: %s', releaseUrl)
+
       // Push the release commit and tag to the origin.
       const pushResult = await until(() => push())
       invariant(
@@ -165,14 +173,6 @@ export class Publish extends Command {
       )
 
       console.log('pushed changes to origin!')
-
-      // Generate release notes and create a new release on GitHub.
-      const releaseNotes = await getReleaseNotes(commits)
-      const releaseMarkdown = toMarkdown(context, releaseNotes)
-      console.log('generated release notes:\n\n', releaseMarkdown)
-
-      const releaseUrl = await createRelease(context, releaseMarkdown)
-      console.log('created release: %s', releaseUrl)
     })
 
     if (result.error) {
