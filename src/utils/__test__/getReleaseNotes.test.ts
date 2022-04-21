@@ -1,7 +1,7 @@
 import type { Commit } from 'git-log-parser'
-import { ReleaseContext } from '../../commands/publish'
 import { getReleaseNotes, toMarkdown } from '../getReleaseNotes'
 import { mockRepo } from '../../../test/fixtures'
+import { createContext } from '../createContext'
 
 describe(getReleaseNotes, () => {
   it('groups commits by commit type', async () => {
@@ -60,12 +60,14 @@ describe(getReleaseNotes, () => {
 })
 
 describe(toMarkdown, () => {
-  const context: ReleaseContext = {
+  const context = createContext({
     repo: mockRepo(),
-    prevVersion: '0.0.0',
-    version: '0.1.0',
-    publishedAt: new Date('20 Apr 2022 12:00:000 GMT'),
-  }
+    latestRelease: null,
+    nextRelease: {
+      version: '0.1.0',
+      publishedAt: new Date('20 Apr 2022 12:00:000 GMT'),
+    },
+  })
 
   it('includes issues references in release items', async () => {
     const notes = await getReleaseNotes([

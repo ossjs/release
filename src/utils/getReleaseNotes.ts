@@ -2,7 +2,7 @@ import { PassThrough } from 'node:stream'
 import type { Commit } from 'git-log-parser'
 import * as parseCommit from 'conventional-commits-parser'
 import type { Commit as ParsedCommit } from 'conventional-commits-parser'
-import type { ReleaseContext } from '../commands/publish'
+import type { ReleaseContext } from './createContext'
 
 export type ReleaseNotes = Map<string, Set<ParsedCommit>>
 
@@ -42,17 +42,20 @@ export async function getReleaseNotes(
 }
 
 export function toMarkdown(
-  release: ReleaseContext,
+  context: ReleaseContext,
   notes: ReleaseNotes
 ): string {
   const markdown: string[] = []
 
-  const releaseDate = release.publishedAt.toLocaleDateString('en-GB', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  })
-  markdown.push(`## ${release.version} (${releaseDate})`)
+  const releaseDate = context.nextRelease.publishedAt.toLocaleDateString(
+    'en-GB',
+    {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }
+  )
+  markdown.push(`## ${context.nextRelease.version} (${releaseDate})`)
 
   const sections: Record<'feat' | 'fix', string[]> = {
     feat: [],

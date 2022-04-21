@@ -1,6 +1,6 @@
 import fetch from 'node-fetch'
 import { format } from 'outvariant'
-import type { ReleaseContext } from '../../commands/publish'
+import type { ReleaseContext } from 'utils/createContext'
 
 export interface CreateReleaseResponse {
   html_url: string
@@ -27,8 +27,8 @@ export async function createRelease(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        tag_name: context.version,
-        name: context.version,
+        tag_name: context.nextRelease.tag,
+        name: context.nextRelease.tag,
         body: notes,
       }),
     }

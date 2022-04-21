@@ -1,7 +1,8 @@
 import { until } from '@open-draft/until'
 import { invariant } from 'outvariant'
 import { Command } from '../Command'
-import { getInfo, GitInfo } from '../utils/git/getInfo'
+import { createContext } from '../utils/createContext'
+import { getInfo } from '../utils/git/getInfo'
 import { getNextReleaseType } from '../utils/getNextReleaseType'
 import { getNextVersion } from '../utils/getNextVersion'
 import { getCommits } from '../utils/git/getCommits'
@@ -17,13 +18,6 @@ import { createRelease } from '../utils/git/createRelease'
 import { push } from '../utils/git/push'
 
 const { GITHUB_TOKEN } = process.env
-
-export interface ReleaseContext {
-  repo: GitInfo
-  version: string
-  prevVersion: string
-  publishedAt: Date
-}
 
 export class Publish extends Command {
   static command = 'publish'
@@ -86,12 +80,14 @@ export class Publish extends Command {
     const nextVersion = getNextVersion(prevVersion, nextReleaseType)
     console.log('next version: %s -> %s', prevVersion, nextVersion)
 
-    const context: ReleaseContext = {
+    const context = createContext({
       repo,
-      version: nextVersion,
-      prevVersion,
-      publishedAt: new Date(),
-    }
+      latestRelease,
+      nextRelease: {
+        version: nextVersion,
+        publishedAt: new Date(),
+      },
+    })
 
     // Bump the version in package.json without committing it.
     bumpPackageJson(nextVersion)
@@ -123,7 +119,7 @@ export class Publish extends Command {
       const commitResult = await until(() => {
         return createCommit({
           files: ['package.json'],
-          message: `chore: release ${nextVersion}`,
+          message: `chore: release ${context.nextRelease.tag}`,
         })
       })
 
@@ -155,7 +151,7 @@ export class Publish extends Command {
 
       // Create a Git tag for the release.
       const tagResult = await until(async () => {
-        await createTag(nextVersion)
+        await createTag(context.nextRelease.tag)
         await execAsync('git push --tags')
       })
 
@@ -167,8 +163,8 @@ export class Publish extends Command {
 
       revertQueue.push(async () => {
         console.log('reverting release tag...')
-        await execAsync(`git tag -d ${nextVersion}`)
-        await execAsync(`git push --delete origin ${nextVersion}`)
+        await execAsync(`git tag -d ${context.nextRelease.tag}`)
+        await execAsync(`git push --delete origin ${context.nextRelease.tag}`)
       })
 
       console.log('created release tag "%s"!', tagResult.data)

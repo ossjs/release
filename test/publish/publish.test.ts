@@ -108,7 +108,7 @@ module.exports = {
 
   expect(await fsMock.exec('git log')).toHaveProperty(
     'stdout',
-    expect.stringContaining('chore: release 0.1.0')
+    expect.stringContaining('chore: release v0.1.0')
   )
 
   // Must create a new tag for the release.
