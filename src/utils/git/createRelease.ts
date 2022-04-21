@@ -16,6 +16,12 @@ export async function createRelease(
 ): Promise<string> {
   const { repo } = context
 
+  console.log(
+    'creating a new release at "%s/%s"...',
+    context.repo.owner,
+    context.repo.name
+  )
+
   const response = await fetch(
     `https://api.github.com/repos/${repo.owner}/${repo.name}/releases`,
     {

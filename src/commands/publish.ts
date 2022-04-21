@@ -41,6 +41,10 @@ export class Publish extends Command {
     const branchName = await getCurrentBranch()
     console.log('preparing release from "%s"...', branchName)
 
+    /**
+     * @todo Check that the repo state is without uncommitted changes.
+     */
+
     // Get the latest release.
     const tags = await getTags()
     const latestRelease = await getLatestRelease(tags)
@@ -112,53 +116,73 @@ export class Publish extends Command {
     console.log(publishResult.data)
     console.log('published successfully!')
 
-    // Create a release commit containing the version bump in package.json
-    const commitResult = await until(() => {
-      return createCommit({
-        files: ['package.json'],
-        message: `chore: release ${nextVersion}`,
+    const revertQueue: Array<() => Promise<void>> = []
+
+    const result = await until(async () => {
+      // Create a release commit containing the version bump in package.json
+      const commitResult = await until(() => {
+        return createCommit({
+          files: ['package.json'],
+          message: `chore: release ${nextVersion}`,
+        })
       })
+
+      invariant(
+        commitResult.error == null,
+        'Failed to create release commit!\n',
+        commitResult.error
+      )
+
+      revertQueue.push(async () => {
+        console.log('reverting the release commit...')
+        await execAsync('git reset --hard HEAD~1')
+      })
+
+      console.log('created a release commit!')
+
+      // Create a Git tag for the release.
+      const tagResult = await until(() => createTag(nextVersion))
+
+      invariant(
+        tagResult.error == null,
+        'Failed to tag the release!\n',
+        tagResult.error
+      )
+
+      revertQueue.push(async () => {
+        console.log('reverting release tag...')
+        await execAsync(`git tag -d ${nextVersion}`)
+      })
+
+      console.log('created release tag "%s"!', tagResult.data)
+
+      // Push the release commit and tag to the origin.
+      const pushResult = await until(() => push())
+      invariant(
+        pushResult.error == null,
+        'Failed to push changes to origin!\n',
+        pushResult.error
+      )
+
+      console.log('pushed changes to origin!')
+
+      // Generate release notes and create a new release on GitHub.
+      const releaseNotes = await getReleaseNotes(commits)
+      const releaseMarkdown = toMarkdown(context, releaseNotes)
+      console.log('generated release notes:\n\n', releaseMarkdown)
+
+      const releaseUrl = await createRelease(context, releaseMarkdown)
+      console.log('created release: %s', releaseUrl)
     })
-    invariant(
-      commitResult.error == null,
-      'Failed to create release commit!\n',
-      commitResult.error
-    )
 
-    console.log('created a release commit!')
+    if (result.error) {
+      // Revert changes in case of errors.
+      for (const revert of revertQueue) {
+        await revert()
+      }
 
-    // Create a Git tag for the release.
-    const tagResult = await until(() => createTag(nextVersion))
-    invariant(
-      tagResult.error == null,
-      'Failed to tag the release!\n',
-      tagResult.error
-    )
-
-    console.log('created release tag "%s"!', tagResult.data)
-
-    // Push the release commit and tag to the origin.
-    const pushResult = await until(() => push())
-    invariant(
-      pushResult.error == null,
-      'Failed to push changes to origin!\n',
-      pushResult.error
-    )
-
-    console.log('pushed changes to origin!')
-
-    // Generate release notes and create a new release on GitHub.
-    const releaseNotes = await getReleaseNotes(commits)
-    const releaseMarkdown = toMarkdown(context, releaseNotes)
-    console.log('generated release notes:\n\n', releaseMarkdown)
-
-    const releaseUrl = await createRelease(context, releaseMarkdown)
-    console.log('created release: %s', releaseUrl)
-
-    /**
-     * @todo Revert release tag/commit if anything fails
-     * after the tag point.
-     */
+      throw result.error
+    }
 
     console.log('release done!')
   }
