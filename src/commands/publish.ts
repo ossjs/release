@@ -176,12 +176,14 @@ export class Publish extends Command {
     })
 
     if (result.error) {
+      console.log('pushing release failed, reverting changes...')
+
       // Revert changes in case of errors.
       for (const revert of revertQueue) {
         await revert()
       }
 
-      throw result.error
+      invariant(false, result.error.message)
     }
 
     console.log('release done!')

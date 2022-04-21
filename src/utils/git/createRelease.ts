@@ -1,5 +1,5 @@
 import fetch from 'node-fetch'
-import { invariant } from 'outvariant'
+import { format } from 'outvariant'
 import type { ReleaseContext } from '../../commands/publish'
 
 export interface CreateReleaseResponse {
@@ -39,18 +39,18 @@ export async function createRelease(
   )
 
   if (response.status === 401) {
-    console.error(
+    throw new Error(
       'Failed to create a new GitHub release: provided GITHUB_TOKEN does not have sufficient permissions to perform this operation. Please check your token and update it if necessary.'
     )
-    process.exit(1)
   }
 
   if (response.status !== 201) {
-    console.error(
-      'Failed to create a new GitHub release: GitHub API responded with status code %d.',
-      response.status
+    throw new Error(
+      format(
+        'Failed to create a new GitHub release: GitHub API responded with status code %d.',
+        response.status
+      )
     )
-    process.exit(1)
   }
 
   const data = (await response.json()) as CreateReleaseResponse
