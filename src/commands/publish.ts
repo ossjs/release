@@ -135,7 +135,20 @@ export class Publish extends Command {
 
       revertQueue.push(async () => {
         console.log('reverting the release commit...')
-        await execAsync('git reset --hard HEAD~1')
+
+        const hasChanges = await execAsync('git diff')
+
+        if (hasChanges) {
+          console.log('stashing uncommitted changes...')
+          await execAsync('git stash')
+        }
+
+        await execAsync('git reset --hard HEAD~1').finally(async () => {
+          if (hasChanges) {
+            console.log('restoring stashed changes...')
+            await execAsync('git stash pop')
+          }
+        })
       })
 
       console.log('created a release commit!')
