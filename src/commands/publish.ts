@@ -154,7 +154,10 @@ export class Publish extends Command {
       console.log('created a release commit!')
 
       // Create a Git tag for the release.
-      const tagResult = await until(() => createTag(nextVersion))
+      const tagResult = await until(async () => {
+        await createTag(nextVersion)
+        await execAsync('git push --tags')
+      })
 
       invariant(
         tagResult.error == null,
@@ -165,6 +168,7 @@ export class Publish extends Command {
       revertQueue.push(async () => {
         console.log('reverting release tag...')
         await execAsync(`git tag -d ${nextVersion}`)
+        await execAsync(`git push --delete origin ${nextVersion}`)
       })
 
       console.log('created release tag "%s"!', tagResult.data)
