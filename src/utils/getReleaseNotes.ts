@@ -76,7 +76,7 @@ export function toMarkdown(
       day: '2-digit',
     }
   )
-  markdown.push(`## ${context.nextRelease.version} (${releaseDate})`)
+  markdown.push(`## ${context.nextRelease.tag} (${releaseDate})`)
 
   const sections: Record<'feat' | 'fix', string[]> = {
     feat: [],
