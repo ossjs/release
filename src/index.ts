@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import * as yargs from 'yargs'
 import { getConfig } from './utils/getConfig'
 

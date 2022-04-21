@@ -1,13 +1,13 @@
 import * as portfinder from 'portfinder'
 import type { TeardownApi } from 'fs-teardown'
 import type { Git } from 'node-git-server'
-import { invariant } from 'outvariant'
 
-export async function initGit(fsMock: TeardownApi, origin: URL): Promise<void> {
-  const remoteUrl = new URL('test.git', origin)
-
+export async function initGit(
+  fsMock: TeardownApi,
+  remote: string
+): Promise<void> {
   await fsMock.exec('git init')
-  await fsMock.exec(`git remote add origin ${remoteUrl.href}`)
+  await fsMock.exec(`git remote add origin ${remote}`)
   await fsMock.exec(
     'git config user.email "actions@github.com" && git config user.name "GitHub Actions"'
   )
@@ -18,6 +18,8 @@ export async function initGit(fsMock: TeardownApi, origin: URL): Promise<void> {
 }
 
 export async function startGitProvider(provider: Git, url: URL): Promise<void> {
+  console.log('started git provider at "%s"', url.href)
+
   return new Promise((resolve) => {
     provider.listen(
       Number(url.port),
@@ -30,7 +32,7 @@ export async function startGitProvider(provider: Git, url: URL): Promise<void> {
 }
 
 export interface Origin {
-  url: URL
+  url: string
   get(): Promise<URL>
 }
 
@@ -38,9 +40,9 @@ export function createOrigin(): Origin {
   let url: URL
 
   const result = {
-    async get(): Promise<URL> {
+    async get() {
       const port = await portfinder.getPortPromise()
-      url = new URL(`http://localhost:${port}/test.git`)
+      url = new URL(`http://localhost:${port}/octocat/test.git`)
       return url
     },
   }

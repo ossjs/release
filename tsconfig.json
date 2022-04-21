@@ -3,6 +3,7 @@
     "strict": true,
     "module": "CommonJS",
     "target": "ESNext",
+    "sourceMap": true,
     "outDir": "./bin",
     "baseUrl": "./src"
   },

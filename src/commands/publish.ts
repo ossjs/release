@@ -1,5 +1,7 @@
 import { until } from '@open-draft/until'
+import { invariant } from 'outvariant'
 import { Command } from '../Command'
+import { getInfo, GitInfo } from '../utils/git/getInfo'
 import { getNextReleaseType } from '../utils/getNextReleaseType'
 import { getNextVersion } from '../utils/getNextVersion'
 import { getCommits } from '../utils/git/getCommits'
@@ -10,20 +12,38 @@ import { getTags } from '../utils/git/getTags'
 import { execAsync } from '../utils/execAsync'
 import { createCommit } from '../utils/git/createCommit'
 import { createTag } from '../utils/git/createTag'
+import { getReleaseNotes, toMarkdown } from '../utils/getReleaseNotes'
+import { createRelease } from '../utils/git/createRelease'
 import { push } from '../utils/git/push'
-import { invariant } from 'outvariant'
+
+const { GITHUB_TOKEN } = process.env
+
+export interface ReleaseContext {
+  repo: GitInfo
+  version: string
+  prevVersion: string
+  publishedAt: Date
+}
 
 export class Publish extends Command {
   static command = 'publish'
   static description = 'Publish the package'
 
   public run = async () => {
+    invariant(
+      GITHUB_TOKEN,
+      'Failed to publish the package: the "GITHUB_TOKEN" environmental variable is not provided.'
+    )
+
+    // Extract repository information (remote/owner/name).
+    const repo = await getInfo()
+
     const branchName = await getCurrentBranch()
     console.log('preparing release from "%s"...', branchName)
 
     // Get the latest release.
     const tags = await getTags()
-    const latestRelease = getLatestRelease(tags)
+    const latestRelease = await getLatestRelease(tags)
 
     if (latestRelease) {
       console.log(
@@ -62,13 +82,14 @@ export class Publish extends Command {
     const nextVersion = getNextVersion(prevVersion, nextReleaseType)
     console.log('next version: %s -> %s', prevVersion, nextVersion)
 
-    /**
-     * @todo
-     * 1. Bump version in local package.json.
-     * 2. Run the publishing script.
-     * 3. If success, commit the package.json changes.
-     * 4. Push the changes to the remote.
-     */
+    const context: ReleaseContext = {
+      repo,
+      version: nextVersion,
+      prevVersion,
+      publishedAt: new Date(),
+    }
+
+    // Bump the version in package.json without committing it.
     bumpPackageJson(nextVersion)
 
     // Execute the publishing script.
@@ -87,7 +108,8 @@ export class Publish extends Command {
       publishResult.error
     )
 
-    console.log('\n', publishResult.data)
+    console.log('\n')
+    console.log(publishResult.data)
     console.log('published successfully!')
 
     // Create a release commit containing the version bump in package.json
@@ -124,5 +146,15 @@ export class Publish extends Command {
     )
 
     console.log('pushed changes to origin!')
+
+    // Generate release notes and create a new release on GitHub.
+    const releaseNotes = await getReleaseNotes(commits)
+    const releaseMarkdown = toMarkdown(context, releaseNotes)
+    console.log('generated release notes:\n\n', releaseMarkdown)
+
+    const releaseUrl = await createRelease(context, releaseMarkdown)
+    console.log('created release: %s', releaseUrl)
+
+    console.log('release done!')
   }
 }
