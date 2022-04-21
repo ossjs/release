@@ -121,7 +121,7 @@ export class Publish extends Command {
       const commitResult = await until(() => {
         return createCommit({
           files: ['package.json'],
-          message: `chore: release ${context.nextRelease.tag}`,
+          message: `chore: publish ${context.nextRelease.tag}`,
         })
       })
 

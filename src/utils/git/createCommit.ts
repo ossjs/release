@@ -10,5 +10,7 @@ export async function createCommit({
   message,
 }: CreateCommitOptions): Promise<void> {
   await execAsync(`git add ${files.join(' ')}`)
-  await execAsync(`git commit -m '${message}'`)
+  await execAsync(
+    `git commit -m '${message}' --author 'GitHub Actions <actions@github.com>'`
+  )
 }
