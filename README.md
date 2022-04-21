@@ -51,6 +51,18 @@ The bottom line is: failed releases happen. The package registry may be down, yo
 npm install <NAME> --save-dev
 ```
 
+## Configuration
+
+```ts
+{
+  /**
+   * The publishing script to run.
+   * @example "npm publish"
+   */
+  script: string
+}
+```
+
 ## Usage in CI
 
 This tool exposes a CLI which you can use with any continuous integration providers. No need to install actions, configure things, and pray for it to work.
