@@ -2,6 +2,7 @@ import { createTeardown } from 'fs-teardown'
 import { Git } from 'node-git-server'
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
+import { log } from '../../src/logger'
 import { createOrigin, initGit, startGitProvider } from '../utils'
 import { Publish } from '../../src/commands/publish'
 import { execAsync } from '../../src/utils/execAsync'
@@ -40,8 +41,8 @@ const gitProvider = new Git(fsMock.resolve('git-provider'), {
   .on('fetch', (fetch) => fetch.accept())
 
 beforeAll(async () => {
-  jest.spyOn(console, 'log').mockImplementation()
-  jest.spyOn(console, 'error')
+  jest.spyOn(log, 'info').mockImplementation()
+  jest.spyOn(log, 'error')
 
   execAsync.mockContext({
     cwd: fsMock.resolve(),
@@ -87,19 +88,19 @@ module.exports = {
   })
   await publish.run()
 
-  expect(console.error).not.toHaveBeenCalled()
+  expect(log.error).not.toHaveBeenCalled()
 
-  expect(console.log).toHaveBeenCalledWith('found %d new commit(s):', 2)
+  expect(log.info).toHaveBeenCalledWith('found %d new commit(s):', 2)
 
   // Must notify about the next version.
-  expect(console.log).toHaveBeenCalledWith(
+  expect(log.info).toHaveBeenCalledWith(
     'next version: %s -> %s',
     '0.0.0',
     '0.1.0'
   )
 
   // The release script is provided with the environmental variables.
-  expect(console.log).toHaveBeenCalledWith('release script input: 0.1.0\n')
+  expect(log.info).toHaveBeenCalledWith('release script input: 0.1.0\n')
 
   // Must bump the "version" in package.json.
   expect(
@@ -117,5 +118,5 @@ module.exports = {
     expect.stringContaining('0.1.0')
   )
 
-  expect(console.log).toHaveBeenCalledWith('created release: %s', '/releases/1')
+  expect(log.info).toHaveBeenCalledWith('created release: %s', '/releases/1')
 })

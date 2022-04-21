@@ -1,3 +1,4 @@
+import { log } from '../../../src/logger'
 import fetch from 'node-fetch'
 import { format } from 'outvariant'
 import type { ReleaseContext } from 'utils/createContext'
@@ -16,7 +17,7 @@ export async function createRelease(
 ): Promise<string> {
   const { repo } = context
 
-  console.log('creating a new release at "%s/%s"...', repo.owner, repo.name)
+  log.info('creating a new release at "%s/%s"...', repo.owner, repo.name)
 
   const response = await fetch(
     `https://api.github.com/repos/${repo.owner}/${repo.name}/releases`,

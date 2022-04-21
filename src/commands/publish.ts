@@ -1,6 +1,7 @@
 import { until } from '@open-draft/until'
 import { invariant } from 'outvariant'
 import { Command } from '../Command'
+import { log } from '../logger'
 import { createContext } from '../utils/createContext'
 import { getInfo } from '../utils/git/getInfo'
 import { getNextReleaseType } from '../utils/getNextReleaseType'
@@ -33,20 +34,26 @@ export class Publish extends Command {
     const repo = await getInfo()
 
     const branchName = await getCurrentBranch()
-    console.log('preparing release from "%s"...', branchName)
+
+    log.info(
+      'preparing release for "%s/%s" from "%s"...',
+      repo.owner,
+      repo.name,
+      branchName
+    )
 
     // Get the latest release.
     const tags = await getTags()
     const latestRelease = await getLatestRelease(tags)
 
     if (latestRelease) {
-      console.log(
-        'found a previous release "%s" (%s)',
+      log.info(
+        'found latest release: %s (%s)',
         latestRelease.tag,
         latestRelease.hash
       )
     } else {
-      console.log('found no previous releases, creating a new one...')
+      log.info('found no previous releases, creating a new one...')
     }
 
     const commits = await getCommits({
@@ -54,27 +61,27 @@ export class Publish extends Command {
     })
 
     if (commits.length === 0) {
-      console.log('no commits since the latest release, skipping...')
+      log.warn('no commits since the latest release, skipping...')
       return
     }
 
-    console.log('found %d new commit(s):', commits.length)
+    log.info('found %d new commit(s):', commits.length)
     for (const commit of commits) {
-      console.log(' - %s %s', commit.commit.short, commit.subject)
+      log.info('- %s (%s)', commit.subject, commit.hash)
     }
 
     // Get the next release type and version number.
     const nextReleaseType = getNextReleaseType(commits)
     if (!nextReleaseType) {
-      console.log('committed changes do not bump version, skipping...')
+      log.warn('committed changes do not bump version, skipping...')
       return
     }
 
-    console.log('release type: %s', nextReleaseType)
+    log.info('next release type: %s', nextReleaseType)
 
     const prevVersion = latestRelease?.tag || '0.0.0'
     const nextVersion = getNextVersion(prevVersion, nextReleaseType)
-    console.log('next version: %s -> %s', prevVersion, nextVersion)
+    log.info('next version: %s -> %s', prevVersion, nextVersion)
 
     const context = createContext({
       repo,
@@ -89,7 +96,7 @@ export class Publish extends Command {
     bumpPackageJson(nextVersion)
 
     // Execute the publishing script.
-    console.log('executing the publishing script...')
+    log.info('executing publishing script...')
     const publishResult = await until(() => {
       return execAsync(this.config.script, {
         env: {
@@ -104,9 +111,8 @@ export class Publish extends Command {
       publishResult.error
     )
 
-    console.log('\n')
-    console.log(publishResult.data)
-    console.log('published successfully!')
+    log.info(publishResult.data)
+    log.info('published successfully!')
 
     const revertQueue: Array<() => Promise<void>> = []
 
@@ -126,29 +132,30 @@ export class Publish extends Command {
       )
 
       revertQueue.push(async () => {
-        console.log('reverting the release commit...')
+        log.info('reverting the release commit...')
 
         const hasChanges = await execAsync('git diff')
 
         if (hasChanges) {
-          console.log('stashing uncommitted changes...')
+          log.info('stashing uncommitted changes...')
           await execAsync('git stash')
         }
 
         await execAsync('git reset --hard HEAD~1').finally(async () => {
           if (hasChanges) {
-            console.log('restoring stashed changes...')
+            log.info('unstashing uncommitted changes...')
             await execAsync('git stash pop')
           }
         })
       })
 
-      console.log('created a release commit!')
+      log.info('created release commit!')
 
       // Create a Git tag for the release.
       const tagResult = await until(async () => {
-        await createTag(context.nextRelease.tag)
+        const tag = await createTag(context.nextRelease.tag)
         await execAsync('git push --tags')
+        return tag
       })
 
       invariant(
@@ -158,20 +165,20 @@ export class Publish extends Command {
       )
 
       revertQueue.push(async () => {
-        console.log('reverting release tag...')
+        log.info('reverting the release tag...')
         await execAsync(`git tag -d ${context.nextRelease.tag}`)
         await execAsync(`git push --delete origin ${context.nextRelease.tag}`)
       })
 
-      console.log('created release tag "%s"!', tagResult.data)
+      log.info('created release tag "%s"!', tagResult.data)
 
       // Generate release notes and create a new release on GitHub.
       const releaseNotes = await getReleaseNotes(commits)
       const releaseMarkdown = toMarkdown(context, releaseNotes)
-      console.log('generated release notes:\n\n', releaseMarkdown)
+      log.info('generated release notes:\n\n', releaseMarkdown)
 
       const releaseUrl = await createRelease(context, releaseMarkdown)
-      console.log('created release: %s', releaseUrl)
+      log.info('created release: %s', releaseUrl)
 
       // Push the release commit and tag to the origin.
       const pushResult = await until(() => push())
@@ -181,7 +188,7 @@ export class Publish extends Command {
         pushResult.error
       )
 
-      console.log('pushed changes to origin!')
+      log.info('pushed changes to "%s" (origin)!', repo.remote)
     })
 
     if (result.error) {
@@ -191,17 +198,18 @@ export class Publish extends Command {
        * so the package has been published at this point, just the Git info
        * updates are missing.
        */
-      console.log('pushing release failed, reverting changes...')
+      log.warn('pushing release failed, reverting changes...')
 
       // Revert changes in case of errors.
       for (const revert of revertQueue) {
         await revert()
       }
 
+      log.error(result.error)
       console.error(result.error)
       process.exit(1)
     }
 
-    console.log('release done!')
+    log.info('release "%s" completed!', context.nextRelease.tag)
   }
 }
