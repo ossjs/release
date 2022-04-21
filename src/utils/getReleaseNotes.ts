@@ -41,11 +41,6 @@ export async function getReleaseNotes(
   })
 }
 
-const SECTION_NAMES: Record<string, string> = {
-  feat: 'Features',
-  fix: 'Bug Fixes',
-}
-
 export function toMarkdown(
   release: ReleaseContext,
   notes: ReleaseNotes
@@ -59,23 +54,48 @@ export function toMarkdown(
   })
   markdown.push(`## ${release.version} (${releaseDate})`)
 
+  const sections: Record<'feat' | 'fix', string[]> = {
+    feat: [],
+    fix: [],
+  }
+
   for (const [commitType, commits] of notes) {
-    const sectionName = SECTION_NAMES[commitType]
-    if (!sectionName) {
+    const section = sections[commitType as 'feat' | 'fix']
+
+    if (!section) {
       continue
     }
 
-    markdown.push('', `### ${sectionName}`, '')
-
     for (const commit of commits) {
-      const { subject, scope } = commit
+      const releaseItem = createReleaseItem(commit)
 
-      if (subject) {
-        const commitLine = [scope && `**${scope}:**`, subject].join(' ')
-        markdown.push(`- ${commitLine}`)
+      if (releaseItem) {
+        section.push(releaseItem)
       }
     }
   }
 
+  if (sections.feat.length > 0) {
+    markdown.push('', '### Features', '')
+    markdown.push(...sections.feat)
+  }
+
+  if (sections.fix.length > 0) {
+    markdown.push('', '### Bug Fixes', '')
+    markdown.push(...sections.fix)
+  }
+
   return markdown.join('\n')
+}
+
+function createReleaseItem(commit: ParsedCommit): string | undefined {
+  const { subject, scope } = commit
+
+  if (subject) {
+    const commitLine = [scope && `**${scope}:**`, subject]
+      .filter(Boolean)
+      .join(' ')
+
+    return `- ${commitLine}`
+  }
 }

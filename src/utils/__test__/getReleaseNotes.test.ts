@@ -64,7 +64,7 @@ describe(toMarkdown, () => {
     repo: mockRepo(),
     prevVersion: '0.0.0',
     version: '0.1.0',
-    publishedAt: new Date(),
+    publishedAt: new Date('20 Apr 2022 12:00:000 GMT'),
   }
 
   it('includes issues references in release items', async () => {
@@ -77,5 +77,28 @@ describe(toMarkdown, () => {
     const markdown = toMarkdown(context, notes)
 
     expect(markdown).toContain('- **api:** improves stuff (#1)')
+  })
+
+  it('retains strict order of release sections', async () => {
+    const notes = await getReleaseNotes([
+      { subject: 'fix: second bugfix' },
+      { subject: 'fix: first bugfix' },
+      { subject: 'feat: second feature' },
+      { subject: 'feat: first feature' },
+    ] as Commit[])
+    const markdown = toMarkdown(context, notes)
+
+    expect(markdown).toEqual(`\
+## 0.1.0 (20/04/2022)
+
+### Features
+
+- second feature
+- first feature
+
+### Bug Fixes
+
+- second bugfix
+- first bugfix`)
   })
 })
