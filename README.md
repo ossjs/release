@@ -45,6 +45,13 @@ For an automated tooling there's sure a lot of the word "manual" in this scenari
 
 The bottom line is: failed releases happen. The package registry may be down, your publishing credentials may be wrong, or the entire internet may just decide to take a hiccup. The tooling you use should acknowledge that and support you in those failure cases, not leave you on your own to do manual cleanup chores after the automated solution.
 
+## Opinionated behaviors
+
+- GitHub-only. This tool is primarily designed GitHub.
+- Release tags are in the format `v${version}` (i.e. `v1.2.3`).
+- Release commit is authored by `actions@github.com`.
+- No `CHANGELOG` updates. This tool generates automatic release notes from your commits and creates a new GitHub release with them. Use GitHub releases instead of changelogs.
+
 ## Install
 
 ```sh
