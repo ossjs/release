@@ -176,6 +176,12 @@ export class Publish extends Command {
     })
 
     if (result.error) {
+      /**
+       * @todo Suggest a standalone command to repeat the commit/tag/release
+       * part of the publishing. The actual publish script was called anyway,
+       * so the package has been published at this point, just the Git info
+       * updates are missing.
+       */
       console.log('pushing release failed, reverting changes...')
 
       // Revert changes in case of errors.
@@ -183,7 +189,8 @@ export class Publish extends Command {
         await revert()
       }
 
-      invariant(false, result.error.message)
+      console.error(result.error)
+      process.exit(1)
     }
 
     console.log('release done!')
