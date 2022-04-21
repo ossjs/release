@@ -48,7 +48,8 @@ export async function createRelease(
     throw new Error(
       format(
         'Failed to create a new GitHub release: GitHub API responded with status code %d.',
-        response.status
+        response.status,
+        await response.text()
       )
     )
   }
