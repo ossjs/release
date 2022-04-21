@@ -3,7 +3,7 @@ import { format } from 'outvariant'
 import type { ReleaseContext } from '../../commands/publish'
 
 export interface CreateReleaseResponse {
-  url: string
+  html_url: string
 }
 
 /**
@@ -52,5 +52,5 @@ export async function createRelease(
 
   const data = (await response.json()) as CreateReleaseResponse
 
-  return data.url
+  return data.html_url
 }

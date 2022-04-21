@@ -5,18 +5,19 @@ import { setupServer } from 'msw/node'
 import { createOrigin, initGit, startGitProvider } from '../utils'
 import { Publish } from '../../src/commands/publish'
 import { execAsync } from '../../src/utils/execAsync'
+import type { CreateReleaseResponse } from '../../src/utils/git/createRelease'
 
 const server = setupServer(
   /**
    * The HTTP call happens in a child process "execAsync".
    */
-  rest.post(
+  rest.post<never, never, CreateReleaseResponse>(
     'https://api.github.com/repos/:owner/:repo/releases',
     (req, res, ctx) => {
       return res(
         ctx.status(201),
         ctx.json({
-          url: '/releases/1',
+          html_url: '/releases/1',
         })
       )
     }
