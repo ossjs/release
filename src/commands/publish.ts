@@ -155,6 +155,11 @@ export class Publish extends Command {
     const releaseUrl = await createRelease(context, releaseMarkdown)
     console.log('created release: %s', releaseUrl)
 
+    /**
+     * @todo Revert release tag/commit if anything fails
+     * after the tag point.
+     */
+
     console.log('release done!')
   }
 }
