@@ -18,8 +18,6 @@ export async function initGit(
 }
 
 export async function startGitProvider(provider: Git, url: URL): Promise<void> {
-  console.log('started git provider at "%s"', url.href)
-
   return new Promise((resolve) => {
     provider.listen(
       Number(url.port),

@@ -12,9 +12,8 @@ const fsMock = createTeardown({
 const gitProvider = new Git(fsMock.resolve('git-provider'), {
   autoCreate: true,
 })
-
-gitProvider.on('push', (push) => push.accept())
-gitProvider.on('fetch', (fetch) => fetch.accept())
+  .on('push', (push) => push.accept())
+  .on('fetch', (fetch) => fetch.accept())
 
 beforeAll(async () => {
   await fsMock.prepare()
@@ -25,9 +24,9 @@ beforeAll(async () => {
 })
 
 beforeEach(async () => {
+  jest.restoreAllMocks()
   await fsMock.reset()
   await initGit(fsMock, origin.url)
-  jest.restoreAllMocks()
 })
 
 afterAll(async () => {

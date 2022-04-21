@@ -12,7 +12,7 @@
     "start": "yarn build -w",
     "build": "tsc",
     "postbuild": "chmod +x ./bin/index.js",
-    "test": "jest"
+    "test": "jest --runInBand"
   },
   "devDependencies": {
     "@types/jest": "^27.4.1",
