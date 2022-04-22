@@ -49,7 +49,6 @@ The bottom line is: failed releases happen. The package registry may be down, yo
 
 - GitHub-only. This tool is primarily designed GitHub.
 - Release tags are in the format `v${version}` (i.e. `v1.2.3`).
-- Release commit is authored by `actions@github.com`.
 - No `CHANGELOG` updates. This tool generates automatic release notes from your commits and creates a new GitHub release with them. Use GitHub releases instead of changelogs.
 
 ## Install
