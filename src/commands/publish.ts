@@ -12,7 +12,7 @@ import { getLatestRelease } from '../utils/git/getLatestRelease'
 import { bumpPackageJson } from '../utils/bumpPackageJson'
 import { getTags } from '../utils/git/getTags'
 import { execAsync } from '../utils/execAsync'
-import { createCommit } from '../utils/git/createCommit'
+import { commit } from '../utils/git/commit'
 import { createTag } from '../utils/git/createTag'
 import { getReleaseNotes, toMarkdown } from '../utils/getReleaseNotes'
 import { createRelease } from '../utils/git/createRelease'
@@ -119,7 +119,7 @@ export class Publish extends Command {
     const result = await until(async () => {
       // Create a release commit containing the version bump in package.json
       const commitResult = await until(() => {
-        return createCommit({
+        return commit({
           files: ['package.json'],
           message: `chore: publish ${context.nextRelease.tag}`,
         })
