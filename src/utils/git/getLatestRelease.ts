@@ -1,14 +1,9 @@
 import * as semver from 'semver'
-import { execAsync } from '../execAsync'
-
-export interface ReleasePointer {
-  tag: string
-  hash: string
-}
+import { getTag, TagPointer } from './getTag'
 
 export async function getLatestRelease(
   tags: string[]
-): Promise<ReleasePointer | undefined> {
+): Promise<TagPointer | undefined> {
   const allTags = tags.sort((left, right) => {
     return semver.rcompare(left, right)
   })
@@ -18,10 +13,5 @@ export async function getLatestRelease(
     return
   }
 
-  const hash = await execAsync(`git rev-list -n 1 ${latestTag}`)
-
-  return {
-    tag: latestTag,
-    hash,
-  }
+  return getTag(latestTag)
 }

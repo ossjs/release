@@ -18,21 +18,13 @@ import { getReleaseNotes, toMarkdown } from '../utils/getReleaseNotes'
 import { createRelease } from '../utils/git/createRelease'
 import { push } from '../utils/git/push'
 
-const { GITHUB_TOKEN } = process.env
-
 export class Publish extends Command {
   static command = 'publish'
   static description = 'Publish the package'
 
   public run = async () => {
-    invariant(
-      GITHUB_TOKEN,
-      'Failed to publish the package: the "GITHUB_TOKEN" environmental variable is not provided.'
-    )
-
     // Extract repository information (remote/owner/name).
     const repo = await getInfo()
-
     const branchName = await getCurrentBranch()
 
     log.info(

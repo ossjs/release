@@ -1,6 +1,6 @@
 import { PassThrough } from 'node:stream'
 import type { Commit } from 'git-log-parser'
-import * as parseCommit from 'conventional-commits-parser'
+import parseCommit from 'conventional-commits-parser'
 import type { Commit as ParsedCommit } from 'conventional-commits-parser'
 import type { ReleaseContext } from './createContext'
 

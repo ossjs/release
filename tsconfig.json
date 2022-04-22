@@ -4,8 +4,10 @@
     "module": "CommonJS",
     "target": "ESNext",
     "sourceMap": true,
+    "esModuleInterop": true,
     "outDir": "./bin/build",
     "baseUrl": "./src"
   },
-  "include": ["typings", "src/index.ts"]
+  "include": ["./typings", "./src/**/*.ts"],
+  "exclude": ["node_modules", "**/*.test.ts"]
 }
