@@ -1,4 +1,4 @@
-import { log } from '../../../src/logger'
+import { log } from '../../logger'
 import fetch from 'node-fetch'
 import { format } from 'outvariant'
 import type { ReleaseContext } from 'utils/createContext'
