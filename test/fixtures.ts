@@ -5,6 +5,7 @@ export function mockRepo(repo: Partial<GitInfo> = {}): GitInfo {
     remote: 'git@github.com:octocat/test.git',
     owner: 'octocat',
     name: 'test',
+    url: 'https://github.com/octocat/test/',
     ...repo,
   }
 }

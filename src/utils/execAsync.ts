@@ -1,39 +1,37 @@
-import { SpawnOptions, spawn } from 'node:child_process'
+import { ExecOptions, exec } from 'node:child_process'
 
 export type ExecAsyncFn = {
-  (command: string, options?: SpawnOptions): Promise<string>
-  mockContext(options: SpawnOptions): void
+  (command: string, options?: ExecOptions): Promise<string>
+  mockContext(options: ExecOptions): void
   restoreContext(): void
-  contextOptions: SpawnOptions
+  contextOptions: ExecOptions
 }
 
-const DEFAULT_CONTEXT: Partial<SpawnOptions> = {
+const DEFAULT_CONTEXT: Partial<ExecOptions> = {
   cwd: process.cwd(),
 }
 
 export const execAsync = <ExecAsyncFn>((command, options = {}) => {
   return new Promise((resolve, reject) => {
-    const [cmd, ...args] = command.split(' ')
-
-    let out = ''
-    const io = spawn(cmd, args, {
+    const io = exec(command, {
       ...execAsync.contextOptions,
       ...options,
     })
 
-    io.once('error', reject)
+    let data = ''
+    let error = ''
 
-    io.stderr?.on('data', reject)
-    io.stdout?.on('data', (chunk) => {
-      out += chunk
-    })
+    io.once('error', (error) => reject(error))
+
+    io.stdout?.on('data', (chunk) => (data += chunk))
+    io.stderr?.on('data', (chunk) => (error += chunk))
 
     io.once('exit', (code) => {
-      if (code !== 0) {
-        return reject()
+      if (code && code !== 0) {
+        return reject(new Error(error))
       }
 
-      resolve(out)
+      resolve(data)
     })
   })
 })
