@@ -62,7 +62,7 @@ describe(getReleaseNotes, () => {
 describe(toMarkdown, () => {
   const context = createContext({
     repo: mockRepo(),
-    latestRelease: null,
+    latestRelease: undefined,
     nextRelease: {
       version: '0.1.0',
       publishedAt: new Date('20 Apr 2022 12:00:000 GMT'),

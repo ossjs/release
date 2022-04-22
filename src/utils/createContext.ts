@@ -13,7 +13,7 @@ export interface ReleaseContext {
 
 export interface ReleaseContextInput {
   repo: GitInfo
-  latestRelease: ReleasePointer | null
+  latestRelease: ReleasePointer | undefined
   nextRelease: {
     version: string
     publishedAt: Date

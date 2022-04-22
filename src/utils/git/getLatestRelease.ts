@@ -8,14 +8,14 @@ export interface ReleasePointer {
 
 export async function getLatestRelease(
   tags: string[]
-): Promise<ReleasePointer | null> {
+): Promise<ReleasePointer | undefined> {
   const allTags = tags.sort((left, right) => {
     return semver.rcompare(left, right)
   })
   const [latestTag] = allTags
 
   if (!latestTag) {
-    return null
+    return
   }
 
   const hash = await execAsync(`git rev-list -n 1 ${latestTag}`)
