@@ -57,21 +57,25 @@ export class Show extends Command<Argv> {
     const gitHubCommitUrl = new URL(`commit/${commit.commit.long}`, repo.url)
 
     const releaseResponse = await fetch(
-      `https://api.github.com/repos/${repo.owner}/${repo.name}/releases/${pointer.tag}`
+      `https://api.github.com/repos/${repo.owner}/${repo.name}/releases/tags/${pointer.tag}`,
+      {
+        headers: {
+          Authorization: `token ${process.env.GITHUB_TOKEN}`,
+        },
+      }
     )
 
     const isPublishedRelease = releaseResponse.status === 200
     const releaseState = isPublishedRelease ? 'published' : 'unpublished'
     const release = await releaseResponse.json()
 
-    console.log({ releaseResponse, release })
-
     log.info(
       `release on GitHub:
   - Commit: %s
-  - Release: %s`,
+  - Release: %s %s`,
       gitHubCommitUrl.href,
-      releaseState
+      releaseState,
+      release?.html_url || ''
     )
 
     if (!isPublishedRelease) {
