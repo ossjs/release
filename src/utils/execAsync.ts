@@ -13,32 +13,20 @@ const DEFAULT_CONTEXT: Partial<ExecOptions> = {
 
 export const execAsync = <ExecAsyncFn>((command, options = {}) => {
   return new Promise((resolve, reject) => {
-    const io = exec(
+    exec(
       command,
       {
         ...execAsync.contextOptions,
         ...options,
       },
-      (error, stdout, stderr) => {
-        console.log({ command, error, stderr, stdout })
+      (error, stdout) => {
+        if (error) {
+          return reject(error)
+        }
+
+        resolve(stdout)
       }
     )
-
-    let data = ''
-    let error = ''
-
-    io.once('error', (error) => reject(error))
-
-    io.stdout?.on('data', (chunk) => (data += chunk))
-    io.stderr?.on('data', (chunk) => (error += chunk))
-
-    io.once('exit', (code) => {
-      if (code && code !== 0) {
-        return reject(new Error(error))
-      }
-
-      resolve(data)
-    })
   })
 })
 
