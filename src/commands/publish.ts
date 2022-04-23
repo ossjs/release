@@ -97,6 +97,8 @@ export class Publish extends Command {
       })
     })
 
+    console.log(this.config.script, { publishResult })
+
     invariant(
       publishResult.error == null,
       'Failed to publish: the publish script exited.\n',
