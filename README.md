@@ -103,3 +103,33 @@ jobs:
 ```
 
 > The goal is to run the `npm run release` script with the `GITHUB_TOKEN` environmental variable provided automatically by GitHub.
+
+## API
+
+### `show`
+
+Displays information about a release.
+
+Release information includes the following:
+
+- Commit associated with the release tag;
+- Release status (public/draft/unpublished);
+- GitHub release URL if present.
+
+#### Arguments
+
+| Argument name | Type     | Description                                   |
+| ------------- | -------- | --------------------------------------------- |
+| `tag`         | `string` | (_Optional_) Tag name of the release to show. |
+
+#### Example
+
+```sh
+# Display info about the latest release.
+<NAME> show
+```
+
+```sh
+# Display info about a specific release.
+<NAME> show v0.19.2
+```
