@@ -9,9 +9,6 @@ import { execAsync } from '../../src/utils/execAsync'
 import type { CreateReleaseResponse } from '../../src/utils/git/createRelease'
 
 const server = setupServer(
-  /**
-   * The HTTP call happens in a child process "execAsync".
-   */
   rest.post<never, never, CreateReleaseResponse>(
     'https://api.github.com/repos/:owner/:repo/releases',
     (req, res, ctx) => {

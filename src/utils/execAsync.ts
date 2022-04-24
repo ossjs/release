@@ -19,13 +19,12 @@ export const execAsync = <ExecAsyncFn>((command, options = {}) => {
         ...execAsync.contextOptions,
         ...options,
       },
-      (error, stdout, stderr) => {
+      (error, stdout) => {
         if (error) {
-          console.error('Failed to execute "%s":', command, error, stderr)
           return reject(error)
         }
 
-        resolve(stdout.toString())
+        resolve(stdout)
       }
     )
   })

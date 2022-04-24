@@ -5,6 +5,7 @@ export interface GitInfo {
   owner: string
   name: string
   remote: string
+  url: string
 }
 
 export async function getInfo(): Promise<GitInfo> {
@@ -33,6 +34,7 @@ export async function getInfo(): Promise<GitInfo> {
     remote,
     owner,
     name,
+    url: new URL(`https://github.com/${owner}/${name}/`).href,
   }
 }
 

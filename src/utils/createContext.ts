@@ -1,9 +1,9 @@
-import { GitInfo } from './git/getInfo'
-import { ReleasePointer } from './git/getLatestRelease'
+import type { GitInfo } from './git/getInfo'
+import type { TagPointer } from './git/getTag'
 
 export interface ReleaseContext {
   repo: GitInfo
-  latestRelease?: ReleasePointer
+  latestRelease?: TagPointer
   nextRelease: {
     version: string
     readonly tag: string
@@ -13,7 +13,7 @@ export interface ReleaseContext {
 
 export interface ReleaseContextInput {
   repo: GitInfo
-  latestRelease: ReleasePointer | undefined
+  latestRelease?: TagPointer
   nextRelease: {
     version: string
     publishedAt: Date

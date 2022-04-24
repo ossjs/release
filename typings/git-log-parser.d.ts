@@ -5,6 +5,7 @@ declare module 'git-log-parser' {
 
   export function parse(
     config: {
+      [option: string]: any
       _?: string
     },
     options?: SpawnOptions

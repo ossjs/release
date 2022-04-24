@@ -1,4 +1,4 @@
-import { createContext } from '../createContext'
+import { ReleaseContext, createContext } from '../createContext'
 
 it('creates a context object', () => {
   const context = createContext({
@@ -6,6 +6,7 @@ it('creates a context object', () => {
       owner: 'octocat',
       name: 'test',
       remote: '@git@github.com:octocat/test.git',
+      url: 'https://github.com/octocat/test',
     },
     latestRelease: undefined,
     nextRelease: {
@@ -14,13 +15,14 @@ it('creates a context object', () => {
     },
   })
 
-  expect(context).toEqual({
+  expect(context).toEqual<ReleaseContext>({
     repo: {
       owner: 'octocat',
       name: 'test',
       remote: '@git@github.com:octocat/test.git',
+      url: 'https://github.com/octocat/test',
     },
-    lotestRelease: undefined,
+    latestRelease: undefined,
     nextRelease: {
       version: '1.2.3',
       tag: 'v1.2.3',
