@@ -106,6 +106,16 @@ jobs:
 
 ## API
 
+### `publish`
+
+Publishes a new version of the package.
+
+#### Example
+
+```sh
+<NAME> publish
+```
+
 ### `show`
 
 Displays information about a release.
