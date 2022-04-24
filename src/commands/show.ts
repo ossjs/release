@@ -1,4 +1,6 @@
 import type { BuilderCallback } from 'yargs'
+import { invariant } from 'outvariant'
+import fetch from 'node-fetch'
 import { log } from '../logger'
 import { Command } from '../Command'
 import { getTag, TagPointer } from '../utils/git/getTag'
@@ -7,11 +9,26 @@ import { getTags } from '../utils/git/getTags'
 import { getCommit } from '../utils/git/getCommit'
 import { getInfo } from '../utils/git/getInfo'
 import { execAsync } from '../utils/execAsync'
-import fetch from 'node-fetch'
 
 interface Argv {
   _: string[]
   tag?: string
+}
+
+export enum ReleaseStatus {
+  /**
+   * Release is public and available for everybody to see
+   * on the GitHub releases page.
+   */
+  Public = 'public',
+  /**
+   * Release is pushed to GitHub but is marked as draft.
+   */
+  Draft = 'draft',
+  /**
+   * Release is local, not present on GitHub.
+   */
+  Unpublished = 'unpublished',
 }
 
 export class Show extends Command<Argv> {
@@ -37,16 +54,13 @@ export class Show extends Command<Argv> {
     const pointer = await this.getTagPointer(tag)
     log.info('found tag "%s"!', pointer.tag)
 
-    /**
-     * @todo Display release info:
-     * - Commit hash and message.
-     * - GitHub releases link (verify if exists).
-     */
     const commit = await getCommit(pointer.hash)
 
-    if (!commit) {
-      return
-    }
+    invariant(
+      commit,
+      'Failed to retrieve release info for tag "%s": cannot find commit associated with the tag.',
+      tag
+    )
 
     // Print local Git info about the release commit.
     const commitOut = await execAsync(`git log -1 ${commit.commit.long}`)
@@ -54,7 +68,6 @@ export class Show extends Command<Argv> {
 
     // Print the remote GitHub info about the release.
     const repo = await getInfo()
-    const gitHubCommitUrl = new URL(`commit/${commit.commit.long}`, repo.url)
 
     const releaseResponse = await fetch(
       `https://api.github.com/repos/${repo.owner}/${repo.name}/releases/tags/${pointer.tag}`,
@@ -66,17 +79,22 @@ export class Show extends Command<Argv> {
     )
 
     const isPublishedRelease = releaseResponse.status === 200
-    const releaseState = isPublishedRelease ? 'published' : 'unpublished'
     const release = await releaseResponse.json()
 
-    log.info(
-      `release on GitHub:
-  - Commit: %s
-  - Release: %s %s`,
-      gitHubCommitUrl.href,
-      releaseState,
-      release?.html_url || ''
-    )
+    const releaseStatus: ReleaseStatus = isPublishedRelease
+      ? release.draft
+        ? ReleaseStatus.Draft
+        : ReleaseStatus.Public
+      : ReleaseStatus.Unpublished
+
+    log.info('release status: %s', releaseStatus)
+
+    if (
+      releaseStatus === ReleaseStatus.Public ||
+      releaseStatus === ReleaseStatus.Draft
+    ) {
+      log.info('release url: %s', release?.html_url)
+    }
 
     if (!isPublishedRelease) {
       log.warn('release "%s" is not published to GitHub!', pointer.tag)
@@ -93,10 +111,11 @@ export class Show extends Command<Argv> {
       log.info('looking up explicit "%s" tag...', tag)
       const pointer = await getTag(tag)
 
-      if (!pointer) {
-        log.error('tag "%s" does not exist!', tag)
-        return process.exit(1)
-      }
+      invariant(
+        pointer,
+        'Failed to retrieve release tag: tag "%s" does not exist.',
+        tag
+      )
 
       return pointer
     }
@@ -104,17 +123,17 @@ export class Show extends Command<Argv> {
     log.info('looking up the latest release tag...')
     const tags = await getTags()
 
-    if (tags.length === 0) {
-      log.warn('repository has no releases!')
-      return process.exit(1)
-    }
+    invariant(
+      tags.length > 0,
+      'Failed to retrieve release tag: repository has no releases.'
+    )
 
     const latestPointer = await getLatestRelease(tags)
 
-    if (!latestPointer) {
-      log.warn('found no releases to show!')
-      return process.exit(1)
-    }
+    invariant(
+      latestPointer,
+      'Failed to retrieve release tag: cannot retrieve releases.'
+    )
 
     return latestPointer
   }

@@ -96,8 +96,6 @@ module.exports = {
     '0.1.0'
   )
 
-  console.log((log.info as jest.Mock).mock.calls)
-
   // The release script is provided with the environmental variables.
   expect(log.info).toHaveBeenCalledWith('release script input: 0.1.0\n')
 
