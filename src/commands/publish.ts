@@ -17,6 +17,9 @@ import { createTag } from '../utils/git/createTag'
 import { getReleaseNotes, toMarkdown } from '../utils/getReleaseNotes'
 import { createRelease } from '../utils/git/createRelease'
 import { push } from '../utils/git/push'
+import { getReleaseRefs } from '../utils/getReleaseRefs'
+import { parseCommits } from '../utils/git/parseCommits'
+import { createComment } from '../utils/github/createComment'
 
 export class Publish extends Command {
   static command = 'publish'
@@ -50,7 +53,7 @@ export class Publish extends Command {
 
     const commits = await getCommits({
       after: latestRelease?.hash,
-    })
+    }).then(parseCommits)
 
     if (commits.length === 0) {
       log.warn('no commits since the latest release, skipping...')
@@ -59,7 +62,7 @@ export class Publish extends Command {
 
     log.info('found %d new commit(s):', commits.length)
     for (const commit of commits) {
-      log.info('- %s (%s)', commit.subject, commit.hash)
+      log.info('- %s (%s)', commit.header, commit.hash)
     }
 
     // Get the next release type and version number.
@@ -108,6 +111,7 @@ export class Publish extends Command {
     log.info(publishResult.data)
     log.info('published successfully!')
 
+    // The queue of actions to invoke if releasing fails.
     const revertQueue: Array<() => Promise<void>> = []
 
     const result = await until(async () => {
@@ -202,6 +206,31 @@ export class Publish extends Command {
       log.error(result.error)
       console.error(result.error)
       process.exit(1)
+    }
+
+    // Comment on each relevant GitHub issue.
+    const issueIds = await getReleaseRefs(commits)
+    const releaseCommentText = `\
+## Release notes
+
+This has been released in ${context.nextRelease.tag}!
+`
+
+    if (issueIds.size > 0) {
+      log.info('commenting on %d referenced issue(s)...', issueIds.size)
+
+      const commentPromises = []
+      for (const issueId of issueIds) {
+        commentPromises.push(
+          createComment(issueId, releaseCommentText).catch((error) => {
+            log.error('commenting on issue "%s" failed: %s', error.message)
+          })
+        )
+      }
+
+      await Promise.allSettled(commentPromises)
+    } else {
+      log.info('no referenced issues, nothing to comment')
     }
 
     log.info('release "%s" completed!', context.nextRelease.tag)

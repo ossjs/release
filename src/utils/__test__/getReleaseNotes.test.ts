@@ -1,21 +1,22 @@
-import type { Commit } from 'git-log-parser'
 import { getReleaseNotes, toMarkdown } from '../getReleaseNotes'
-import { mockRepo } from '../../../test/fixtures'
+import { mockCommit, mockRepo } from '../../../test/fixtures'
 import { createContext } from '../createContext'
+import { parseCommits } from '../git/parseCommits'
 
 describe(getReleaseNotes, () => {
   it('groups commits by commit type', async () => {
-    const notes = await getReleaseNotes([
-      {
+    const commits = await parseCommits([
+      mockCommit({
         subject: 'feat: support graphql',
-      },
-      {
+      }),
+      mockCommit({
         subject: 'fix(ui): remove unsupported styles',
-      },
-      {
+      }),
+      mockCommit({
         subject: 'chore: update dependencies',
-      },
-    ] as Commit[])
+      }),
+    ])
+    const notes = await getReleaseNotes(commits)
 
     expect(Array.from(notes.keys())).toEqual(['feat', 'fix'])
 
@@ -36,11 +37,12 @@ describe(getReleaseNotes, () => {
   })
 
   it('includes issues references', async () => {
-    const notes = await getReleaseNotes([
-      {
+    const commits = await parseCommits([
+      mockCommit({
         subject: 'feat(api): improves stuff (#1)',
-      },
-    ] as Commit[])
+      }),
+    ])
+    const notes = await getReleaseNotes(commits)
 
     expect(Array.from(notes.keys())).toEqual(['feat'])
 
@@ -70,37 +72,39 @@ describe(toMarkdown, () => {
   })
 
   it('includes both issue and commit reference', async () => {
-    const notes = await getReleaseNotes([
-      {
+    const commits = await parseCommits([
+      mockCommit({
         hash: 'abc123',
         subject: 'feat(api): improves stuff (#1)',
-      },
-    ] as Commit[])
-
+      }),
+    ])
+    const notes = await getReleaseNotes(commits)
     const markdown = toMarkdown(context, notes)
 
     expect(markdown).toContain('- **api:** improves stuff (#1) (abc123)')
   })
 
   it('retains strict order of release sections', async () => {
-    const notes = await getReleaseNotes([
-      {
+    const commits = await parseCommits([
+      mockCommit({
         hash: 'abc123',
         subject: 'fix: second bugfix',
-      },
-      {
+      }),
+      mockCommit({
         hash: 'def456',
         subject: 'fix: first bugfix',
-      },
-      {
+      }),
+      mockCommit({
         hash: 'fgh789',
         subject: 'feat: second feature',
-      },
-      {
+      }),
+      mockCommit({
         hash: 'xyz321',
         subject: 'feat: first feature',
-      },
-    ] as Commit[])
+      }),
+    ])
+
+    const notes = await getReleaseNotes(commits)
     const markdown = toMarkdown(context, notes)
 
     expect(markdown).toEqual(`\
