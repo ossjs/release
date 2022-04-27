@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Minimalistic, opinionated, and predictable release automation tool.",
   "main": "./bin/build/index.js",
-  "author": "Artem Zakharchenko",
+  "author": "Artem Zakharchenko <kettanaito@gmail.com>",
   "license": "MIT",
   "bin": {
     "tarm": "./bin/cli.sh"
@@ -43,6 +43,14 @@
     "pino-pretty": "^7.6.1",
     "semver": "^7.3.7",
     "yargs": "^17.4.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ossjs/release.git"
+  },
+  "homepage": "https://github.com/ossjs/release#readme",
+  "publishConfig": {
+    "access": "public"
   },
   "keywords": [
     "release",
