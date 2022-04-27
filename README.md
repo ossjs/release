@@ -54,10 +54,10 @@ The bottom line is: failed releases happen. The package registry may be down, yo
 
 ## Opinionated behaviors
 
-- GitHub-only. This tool is primarily designed GitHub.
-- Release tag in in the format `v${version}` (i.e. `v1.2.3`).
-- Release commit is `chore(release) v${version}`.
-- No `CHANGELOG` updates. This tool generates automatic release notes from your commits and creates a new GitHub release with them. Use GitHub releases instead of changelogs.
+- GitHub-only. This tool is designed for projects hosted on GitHub.
+- Release tag has the following format: `v${version}` (i.e. `v1.2.3`).
+- Release commit has the following format: `chore(release) v${version}`.
+- Does not generate or update the `CHANGELOG` file. This tool generates automatic release notes from your commits and creates a new GitHub release with those notes. Use GitHub releases instead of changelogs.
 
 ## Install
 
