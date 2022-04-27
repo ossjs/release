@@ -12,8 +12,15 @@ Here's the publishing pipeline this tool implements:
 1. Creates release a tag and a release commit in Git.
 1. Creates a new release on GitHub.
 1. Pushes changes to GitHub.
+1. Comments on relevant GitHub issues and pull requests.
 
 While this sounds like what any other release tool would do, the beauty lies in details. Let's take a more detailed look then at what this tool does differently.
+
+### Defaults
+
+**The workflow above is the default (and the only) behavior.**
+
+That's the release process I personally want for all of my libraries, and that's why it's the default behavior for this tool. If you wish for the release automation tool to do something differently or skip certain steps, then this tool is not for you. I want a predictable, consistent release process, and that's largely achieved by the predictable release workflow for all my projects.
 
 ### Release commits
 
@@ -48,7 +55,8 @@ The bottom line is: failed releases happen. The package registry may be down, yo
 ## Opinionated behaviors
 
 - GitHub-only. This tool is primarily designed GitHub.
-- Release tags are in the format `v${version}` (i.e. `v1.2.3`).
+- Release tag in in the format `v${version}` (i.e. `v1.2.3`).
+- Release commit is `chore(release) v${version}`.
 - No `CHANGELOG` updates. This tool generates automatic release notes from your commits and creates a new GitHub release with them. Use GitHub releases instead of changelogs.
 
 ## Install
