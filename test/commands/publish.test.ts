@@ -84,3 +84,62 @@ module.exports = {
 
   expect(log.info).toHaveBeenCalledWith('created release: %s', '/releases/1')
 })
+
+it('comments on relevant github issues', async () => {
+  const commentsCreated = new Map<string, string>()
+
+  api.use(
+    rest.post<never, never, CreateReleaseResponse>(
+      'https://api.github.com/repos/:owner/:repo/releases',
+      (req, res, ctx) => {
+        return res(
+          ctx.status(201),
+          ctx.json({
+            html_url: '/releases/1',
+          })
+        )
+      }
+    ),
+    rest.get(
+      'https://api.github.com/repos/:owner/:repo/issues/:id',
+      (req, res, ctx) => {
+        return res(ctx.json({}))
+      }
+    ),
+    rest.post<{ body: string }>(
+      'https://api.github.com/repos/:owner/:repo/issues/:id/comments',
+      (req, res, ctx) => {
+        commentsCreated.set(req.params.id as string, req.body.body)
+        return res(ctx.status(201))
+      }
+    )
+  )
+
+  await fs.create({
+    'package.json': JSON.stringify({
+      name: 'test',
+      version: '0.0.0',
+    }),
+    'tarn.config.js': `
+module.exports = {
+  script: 'echo "release script input: $RELEASE_VERSION"',
+}
+    `,
+  })
+  await fs.exec(`git add . && git commit -m 'feat: supports graphql (#10)'`)
+
+  const publish = new Publish({
+    script: 'echo "release script input: $RELEASE_VERSION"',
+  })
+  await publish.run()
+
+  expect(log.info).toHaveBeenCalledWith(
+    'commenting on %d referenced issue(s)...',
+    1
+  )
+  expect(commentsCreated).toEqual(
+    new Map([['10', expect.stringContaining('## Released: v0.1.0 🎉')]])
+  )
+
+  expect(log.info).toHaveBeenCalledWith('release "%s" completed!', 'v0.1.0')
+})

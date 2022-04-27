@@ -20,6 +20,7 @@ import { push } from '../utils/git/push'
 import { getReleaseRefs } from '../utils/getReleaseRefs'
 import { parseCommits } from '../utils/git/parseCommits'
 import { createComment } from '../utils/github/createComment'
+import { createReleaseComment } from '../utils/createReleaseComment'
 
 export class Publish extends Command {
   static command = 'publish'
@@ -187,6 +188,10 @@ export class Publish extends Command {
       )
 
       log.info('pushed changes to "%s" (origin)!', repo.remote)
+
+      return {
+        releaseUrl,
+      }
     })
 
     if (result.error) {
@@ -204,17 +209,15 @@ export class Publish extends Command {
       }
 
       log.error(result.error)
-      console.error(result.error)
-      process.exit(1)
+      throw result.error
     }
 
     // Comment on each relevant GitHub issue.
     const issueIds = await getReleaseRefs(commits)
-    const releaseCommentText = `\
-## Release notes
-
-This has been released in ${context.nextRelease.tag}!
-`
+    const releaseCommentText = createReleaseComment({
+      context,
+      releaseUrl: result.data.releaseUrl,
+    })
 
     if (issueIds.size > 0) {
       log.info('commenting on %d referenced issue(s)...', issueIds.size)
