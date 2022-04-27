@@ -1,3 +1,6 @@
+<p align="center">
+  <img width="100" src="./logo.png" alt="Release library logo" />
+</p>
 <h1 align="center">Release</h1>
 
 ## General idea
