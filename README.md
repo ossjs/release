@@ -3,6 +3,8 @@
 </p>
 <h1 align="center">Release</h1>
 
+<p align="center">Minimalistic, opinionated, and predictable release automation tool.</p>
+
 ## General idea
 
 Think [Prettier](https://prettier.io/) but for automated releases: minimalistic, opinionated, and, most of all, predictable. This tool combines the usual expectations from a release manager but brings practicality to the table.
