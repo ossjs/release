@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="100" src="./logo.png" alt="Release library logo" />
+  <img width="100" src="https://github.com/ossjs/release/blob/main/logo.png?raw=true" alt="Release library logo" />
 </p>
 <h1 align="center">Release</h1>
 
