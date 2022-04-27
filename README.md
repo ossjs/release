@@ -67,6 +67,8 @@ npm install <NAME> --save-dev
 
 ## Configuration
 
+Create a `ossjs.release.config.js` file on the root of your package.
+
 ```ts
 {
   /**

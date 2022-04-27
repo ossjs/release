@@ -5,7 +5,7 @@ export interface Config {
 }
 
 export function getConfig(): Config {
-  const configPath = path.resolve(process.cwd(), 'tarn.config.js')
+  const configPath = path.resolve(process.cwd(), 'ossjs.release.config.js')
   const config = require(configPath)
 
   return config

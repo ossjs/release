@@ -38,7 +38,7 @@ it('publishes the next minor version', async () => {
       name: 'test',
       version: '0.0.0',
     }),
-    'tarn.config.js': `
+    'ossjs.release.config.js': `
 module.exports = {
   script: 'echo "release script input: $RELEASE_VERSION"',
 }
@@ -120,7 +120,7 @@ it('comments on relevant github issues', async () => {
       name: 'test',
       version: '0.0.0',
     }),
-    'tarn.config.js': `
+    'ossjs.release.config.js': `
 module.exports = {
   script: 'echo "release script input: $RELEASE_VERSION"',
 }
