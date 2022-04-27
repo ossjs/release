@@ -1,14 +1,10 @@
 import * as fs from 'fs'
-import * as path from 'path'
-import { execAsync } from './execAsync'
+import { readPackageJson } from './readPackageJson'
+import { writePackageJson } from './writePackageJson'
 
 export function bumpPackageJson(version: string): void {
-  const packageJsonPath = path.resolve(
-    execAsync.contextOptions.cwd!.toString(),
-    'package.json'
-  )
-
-  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
+  const packageJson = readPackageJson()
   packageJson.version = version
-  fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2))
+
+  writePackageJson(packageJson)
 }

@@ -1,65 +1,31 @@
-import { PassThrough } from 'node:stream'
-import type { Commit } from 'git-log-parser'
-import parseCommit from 'conventional-commits-parser'
-import type { Commit as ParsedCommit } from 'conventional-commits-parser'
 import type { ReleaseContext } from './createContext'
-
-export type ParsedCommitWithHash = ParsedCommit & {
-  hash: string
-}
+import type { ParsedCommitWithHash } from './git/parseCommits'
 
 export type ReleaseNotes = Map<string, Set<ParsedCommitWithHash>>
 
 const IGNORE_COMMIT_TYPE = ['chore']
 
 export async function getReleaseNotes(
-  commits: Commit[]
+  commits: ParsedCommitWithHash[]
 ): Promise<ReleaseNotes> {
-  const commitParser = parseCommit()
-  const through = new PassThrough()
-
-  const commitMap: Record<string, Commit> = {}
-
-  for (const commit of commits) {
-    commitMap[commit.subject] = commit
-    through.write(commit.subject)
-  }
-  through.end()
-
   const releaseNotes: ReleaseNotes = new Map<
     string,
     Set<ParsedCommitWithHash>
   >()
 
-  return new Promise((resolve, reject) => {
-    through
-      .pipe(commitParser)
-      .on('error', reject)
-      .on('data', (parsedCommit: ParsedCommit) => {
-        const { type, header, merge } = parsedCommit
+  for (const commit of commits) {
+    const { type, merge } = commit
 
-        if (!type || !header || merge || IGNORE_COMMIT_TYPE.includes(type)) {
-          return
-        }
+    if (!type || merge || IGNORE_COMMIT_TYPE.includes(type)) {
+      continue
+    }
 
-        const originalCommit = commitMap[header]
+    const nextCommits =
+      releaseNotes.get(type) || new Set<ParsedCommitWithHash>()
+    releaseNotes.set(type, nextCommits.add(commit))
+  }
 
-        const parsedCommitWithHash: ParsedCommitWithHash = Object.assign(
-          {},
-          parsedCommit,
-          {
-            hash: originalCommit.hash,
-          }
-        )
-
-        const nextCommits =
-          releaseNotes.get(type) || new Set<ParsedCommitWithHash>()
-        releaseNotes.set(type, nextCommits.add(parsedCommitWithHash))
-      })
-      .on('end', () => {
-        resolve(releaseNotes)
-      })
-  })
+  return releaseNotes
 }
 
 export function toMarkdown(

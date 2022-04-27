@@ -1,8 +1,8 @@
 import * as semver from 'semver'
-import * as gitLogParser from 'git-log-parser'
+import { ParsedCommitWithHash } from './git/parseCommits'
 
 export function getNextReleaseType(
-  commits: gitLogParser.Commit[]
+  commits: ParsedCommitWithHash[]
 ): semver.ReleaseType | null {
   const ranges: ['minor' | null, 'patch' | null] = [null, null]
 
@@ -11,17 +11,17 @@ export function getNextReleaseType(
      * @fixme This message is not the only way to denote a breaking change.
      * @ see https://www.conventionalcommits.org/en/v1.0.0/#summary
      */
-    if (commit.body.startsWith('BREAKING CHANGE:')) {
+    if (commit.body?.includes('BREAKING CHANGE:')) {
       return 'major'
     }
 
     switch (true) {
-      case commit.subject.startsWith('feat:'): {
+      case commit.header?.startsWith('feat:'): {
         ranges[0] = 'minor'
         break
       }
 
-      case commit.subject.startsWith('fix:'): {
+      case commit.header?.startsWith('fix:'): {
         ranges[1] = 'patch'
         break
       }
