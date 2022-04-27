@@ -1,8 +1,8 @@
 {
   "name": "tarn-raw",
   "version": "1.0.0",
-  "description": "Release automation made predictable (finally)",
-  "main": "index.js",
+  "description": "Minimalistic, opinionated, and predictable release automation tool.",
+  "main": "./bin/build/index.js",
   "author": "Artem Zakharchenko",
   "license": "MIT",
   "bin": {
@@ -43,5 +43,14 @@
     "pino-pretty": "^7.6.1",
     "semver": "^7.3.7",
     "yargs": "^17.4.1"
-  }
+  },
+  "keywords": [
+    "release",
+    "automation",
+    "changelog",
+    "pubilsh",
+    "semver",
+    "version",
+    "package"
+  ]
 }
