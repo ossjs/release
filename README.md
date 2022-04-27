@@ -110,9 +110,13 @@ jobs:
       - run: npm run release
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
-> The goal is to run the `npm run release` script with the `GITHUB_TOKEN` environmental variable provided automatically by GitHub.
+Make sure to provide all environmental variables needed for publishing:
+
+- `GITHUB_TOKEN` (_required_). Used to create GitHub releases and comment on relevant issues.
+- `NPM_TOKEN`. Used in the example above since it publishes the package to NPM. You may provide a different variable depending on your `scripts.release` script in `ossjs.release.config.js`.
 
 ## API
 
