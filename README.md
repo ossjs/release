@@ -1,4 +1,4 @@
-<h1 align="center">The Adequate Release Manager</h1>
+<h1 align="center">Release</h1>
 
 ## General idea
 
@@ -27,11 +27,11 @@ That's the release process I personally want for all of my libraries, and that's
 **A release tag and a release commit are automatically created.**
 
 ```
-commit cee5327f0c7fc9048de7a18ef7b5339acd648a98 (tag: 1.2.0)
+commit cee5327f0c7fc9048de7a18ef7b5339acd648a98 (tag: v1.2.0)
 Author: GitHub Actions <actions@github.com>
 Date:   Thu Apr 21 12:00:00 2022 +0100
 
-    chore: release 1.2.0
+    chore(release): v1.2.0
 
 ```
 
