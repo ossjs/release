@@ -3,7 +3,7 @@ import * as semver from 'semver'
 
 export function getNextVersion(
   previousVersion: string,
-  releaseType: semver.ReleaseType
+  releaseType: semver.ReleaseType,
 ): string {
   const nextVersion = semver.inc(previousVersion, releaseType)
 
@@ -11,7 +11,7 @@ export function getNextVersion(
     nextVersion,
     'Failed to calculate the next version from "%s" using release type "%s"',
     previousVersion,
-    releaseType
+    releaseType,
   )
 
   return nextVersion

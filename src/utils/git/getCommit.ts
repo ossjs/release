@@ -13,8 +13,8 @@ export async function getCommit(hash: string): Promise<Commit | undefined> {
         // Respect the global working directory so this command
         // parses commits on test repositories during tests.
         cwd: execAsync.contextOptions.cwd,
-      }
-    )
+      },
+    ),
   )
 
   return result?.[0]

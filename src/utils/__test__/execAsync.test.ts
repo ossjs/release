@@ -10,7 +10,7 @@ it('rejects if the command exits', async () => {
 
 it('rejects if the command fails', async () => {
   await expect(execAsync('open foo.txt')).rejects.toThrow(
-    'Command failed: open foo.txt'
+    'Command failed: open foo.txt',
   )
 })
 

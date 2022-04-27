@@ -2,7 +2,7 @@ import * as semver from 'semver'
 import { ParsedCommitWithHash } from './git/parseCommits'
 
 export function getNextReleaseType(
-  commits: ParsedCommitWithHash[]
+  commits: ParsedCommitWithHash[],
 ): semver.ReleaseType | null {
   const ranges: ['minor' | null, 'patch' | null] = [null, null]
 

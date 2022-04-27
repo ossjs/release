@@ -43,8 +43,8 @@ This pull request references issues in its description.
       'https://api.github.com/repos/:owner/:repo/issues/:id',
       (req, res, ctx) => {
         return res(ctx.json(issues[req.params.id as string]))
-      }
-    )
+      },
+    ),
   )
 
   // Create a (squash) commit that references a closed pull request.
@@ -62,6 +62,6 @@ This pull request references issues in its description.
       // Issue id referenced in the pull request description.
       '1',
       '5',
-    ])
+    ]),
   )
 })

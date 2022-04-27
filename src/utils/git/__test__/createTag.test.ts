@@ -43,6 +43,6 @@ it('does not create a tag when it already exists', async () => {
   jest.spyOn(console, 'error').mockImplementation()
   await execAsync('git tag 1.0.0')
   await expect(createTag('1.0.0')).rejects.toThrow(
-    `fatal: tag '1.0.0' already exists`
+    `fatal: tag '1.0.0' already exists`,
   )
 })

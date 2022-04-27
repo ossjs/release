@@ -4,7 +4,7 @@ import { getInfo } from '../git/getInfo'
 
 export async function createComment(
   issueId: string,
-  body: string
+  body: string,
 ): Promise<void> {
   const repo = await getInfo()
 
@@ -19,12 +19,12 @@ export async function createComment(
       body: JSON.stringify({
         body,
       }),
-    }
+    },
   )
 
   invariant(
     response.ok,
     'Failed to create GitHub comment for "%s" issue.',
-    issueId
+    issueId,
   )
 }

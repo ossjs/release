@@ -5,7 +5,7 @@ import { execAsync } from './execAsync'
 export function writePackageJson(nextContent: Record<string, any>): void {
   const packageJsonPath = path.resolve(
     execAsync.contextOptions.cwd!.toString(),
-    'package.json'
+    'package.json',
   )
 
   fs.writeFileSync(
@@ -13,6 +13,6 @@ export function writePackageJson(nextContent: Record<string, any>): void {
     /**
      * @fixme Do not alter the indentation.
      */
-    JSON.stringify(nextContent, null, 2)
+    JSON.stringify(nextContent, null, 2),
   )
 }

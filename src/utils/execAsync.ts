@@ -25,7 +25,7 @@ export const execAsync = <ExecAsyncFn>((command, options = {}) => {
         }
 
         resolve(stdout)
-      }
+      },
     )
   })
 })

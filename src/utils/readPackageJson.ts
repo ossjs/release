@@ -5,7 +5,7 @@ import { execAsync } from './execAsync'
 export function readPackageJson(): Record<string, any> {
   const packageJsonPath = path.resolve(
     execAsync.contextOptions.cwd!.toString(),
-    'package.json'
+    'package.json',
   )
 
   return JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))

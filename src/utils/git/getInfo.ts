@@ -10,24 +10,24 @@ export interface GitInfo {
 
 export async function getInfo(): Promise<GitInfo> {
   const remote = await execAsync(`git config --get remote.origin.url`).then(
-    (out) => out.trim()
+    (out) => out.trim(),
   )
   const [owner, name] = parseOriginUrl(remote)
 
   invariant(
     remote,
     'Failed to extract Git info: expected an origin URL but got %s.',
-    remote
+    remote,
   )
   invariant(
     owner,
     'Failed to extract Git info: expected repository owner but got %s.',
-    owner
+    owner,
   )
   invariant(
     name,
     'Failed to extract Git info: expected repository name but got %s.',
-    name
+    name,
   )
 
   return {
@@ -45,7 +45,7 @@ export function parseOriginUrl(origin: string): [string, string] {
     invariant(
       match,
       'Failed to parse origin URL "%s": invalid URL structure.',
-      origin
+      origin,
     )
 
     return [match[1], match[2]]
@@ -58,7 +58,7 @@ export function parseOriginUrl(origin: string): [string, string] {
     invariant(
       match,
       'Failed to parse origin URL "%s": invalid URL structure.',
-      origin
+      origin,
     )
 
     return [match[1], match[2]]
@@ -67,6 +67,6 @@ export function parseOriginUrl(origin: string): [string, string] {
   invariant(
     false,
     'Failed to extract repository owner/name: given origin URL "%s" is of unknown scheme (Git/HTTP/HTTPS).',
-    origin
+    origin,
   )
 }

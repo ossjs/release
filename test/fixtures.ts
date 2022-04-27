@@ -48,7 +48,7 @@ export function mockCommit(commit: Partial<Commit> = {}): Commit {
 }
 
 export function mockParsedCommit(
-  commit: Partial<ParsedCommitWithHash> = {}
+  commit: Partial<ParsedCommitWithHash> = {},
 ): ParsedCommitWithHash {
   return {
     subject: '',

@@ -27,10 +27,10 @@ it('publishes the next minor version', async () => {
           ctx.status(201),
           ctx.json({
             html_url: '/releases/1',
-          })
+          }),
         )
-      }
-    )
+      },
+    ),
   )
 
   await fs.create({
@@ -59,7 +59,7 @@ module.exports = {
   expect(log.info).toHaveBeenCalledWith(
     'next version: %s -> %s',
     '0.0.0',
-    '0.1.0'
+    '0.1.0',
   )
 
   // The release script is provided with the environmental variables.
@@ -68,18 +68,18 @@ module.exports = {
   // Must bump the "version" in package.json.
   expect(JSON.parse(await fs.readFile('package.json', 'utf8'))).toHaveProperty(
     'version',
-    '0.1.0'
+    '0.1.0',
   )
 
   expect(await fs.exec('git log')).toHaveProperty(
     'stdout',
-    expect.stringContaining('chore(release): v0.1.0')
+    expect.stringContaining('chore(release): v0.1.0'),
   )
 
   // Must create a new tag for the release.
   expect(await fs.exec('git tag')).toHaveProperty(
     'stdout',
-    expect.stringContaining('0.1.0')
+    expect.stringContaining('0.1.0'),
   )
 
   expect(log.info).toHaveBeenCalledWith('created release: %s', '/releases/1')
@@ -96,23 +96,23 @@ it('comments on relevant github issues', async () => {
           ctx.status(201),
           ctx.json({
             html_url: '/releases/1',
-          })
+          }),
         )
-      }
+      },
     ),
     rest.get(
       'https://api.github.com/repos/:owner/:repo/issues/:id',
       (req, res, ctx) => {
         return res(ctx.json({}))
-      }
+      },
     ),
     rest.post<{ body: string }>(
       'https://api.github.com/repos/:owner/:repo/issues/:id/comments',
       (req, res, ctx) => {
         commentsCreated.set(req.params.id as string, req.body.body)
         return res(ctx.status(201))
-      }
-    )
+      },
+    ),
   )
 
   await fs.create({
@@ -135,10 +135,10 @@ module.exports = {
 
   expect(log.info).toHaveBeenCalledWith(
     'commenting on %d referenced issue(s)...',
-    1
+    1,
   )
   expect(commentsCreated).toEqual(
-    new Map([['10', expect.stringContaining('## Released: v0.1.0 🎉')]])
+    new Map([['10', expect.stringContaining('## Released: v0.1.0 🎉')]]),
   )
 
   expect(log.info).toHaveBeenCalledWith('release "%s" completed!', 'v0.1.0')

@@ -21,7 +21,7 @@ export function getCommits({ after }: GetCommitsOptions = {}): Promise<
       },
       {
         cwd: execAsync.contextOptions.cwd || process.cwd(),
-      }
-    )
+      },
+    ),
   )
 }

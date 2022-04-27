@@ -13,7 +13,7 @@ export interface CreateReleaseResponse {
  */
 export async function createRelease(
   context: ReleaseContext,
-  notes: string
+  notes: string,
 ): Promise<string> {
   const { repo } = context
 
@@ -32,12 +32,12 @@ export async function createRelease(
         name: context.nextRelease.tag,
         body: notes,
       }),
-    }
+    },
   )
 
   if (response.status === 401) {
     throw new Error(
-      'Failed to create a new GitHub release: provided GITHUB_TOKEN does not have sufficient permissions to perform this operation. Please check your token and update it if necessary.'
+      'Failed to create a new GitHub release: provided GITHUB_TOKEN does not have sufficient permissions to perform this operation. Please check your token and update it if necessary.',
     )
   }
 
@@ -46,8 +46,8 @@ export async function createRelease(
       format(
         'Failed to create a new GitHub release: GitHub API responded with status code %d.',
         response.status,
-        await response.text()
-      )
+        await response.text(),
+      ),
     )
   }
 

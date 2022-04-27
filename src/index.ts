@@ -10,7 +10,7 @@ const config = getConfig()
 
 invariant(
   process.env.GITHUB_TOKEN,
-  'Failed to publish the package: the "GITHUB_TOKEN" environmental variable is not provided.'
+  'Failed to publish the package: the "GITHUB_TOKEN" environmental variable is not provided.',
 )
 
 yargs
@@ -19,7 +19,7 @@ yargs
     Publish.command,
     Publish.description,
     Publish.builder,
-    new Publish(config).run
+    new Publish(config).run,
   )
   .command(Show.command, Show.description, Show.builder, new Show(config).run)
   .help().argv

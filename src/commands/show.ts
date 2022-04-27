@@ -59,7 +59,7 @@ export class Show extends Command<Argv> {
     invariant(
       commit,
       'Failed to retrieve release info for tag "%s": cannot find commit associated with the tag.',
-      tag
+      tag,
     )
 
     // Print local Git info about the release commit.
@@ -75,7 +75,7 @@ export class Show extends Command<Argv> {
         headers: {
           Authorization: `token ${process.env.GITHUB_TOKEN}`,
         },
-      }
+      },
     )
 
     const isPublishedRelease = releaseResponse.status === 200
@@ -114,7 +114,7 @@ export class Show extends Command<Argv> {
       invariant(
         pointer,
         'Failed to retrieve release tag: tag "%s" does not exist.',
-        tag
+        tag,
       )
 
       return pointer
@@ -125,14 +125,14 @@ export class Show extends Command<Argv> {
 
     invariant(
       tags.length > 0,
-      'Failed to retrieve release tag: repository has no releases.'
+      'Failed to retrieve release tag: repository has no releases.',
     )
 
     const latestPointer = await getLatestRelease(tags)
 
     invariant(
       latestPointer,
-      'Failed to retrieve release tag: cannot retrieve releases.'
+      'Failed to retrieve release tag: cannot retrieve releases.',
     )
 
     return latestPointer

@@ -19,7 +19,7 @@ function extractIssueIds(text: string, repo: GitInfo): Set<string> {
 }
 
 export async function getReleaseRefs(
-  commits: ParsedCommitWithHash[]
+  commits: ParsedCommitWithHash[],
 ): Promise<Set<string>> {
   const repo = await getInfo()
   const issueIds = new Set<string>()
@@ -43,7 +43,7 @@ export async function getReleaseRefs(
   // or commit body. Those may include pull request ids that reference
   // other issues.
   const issuesFromCommits = await Promise.all(
-    Array.from(issueIds).map(fetchIssue)
+    Array.from(issueIds).map(fetchIssue),
   )
 
   // Extract issue ids from the pull request descriptions.
@@ -75,7 +75,7 @@ async function fetchIssue(id: string): Promise<IssueOrPullRequest> {
       headers: {
         Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
       },
-    }
+    },
   )
   const resource = (await response.json()) as Promise<IssueOrPullRequest>
 

@@ -8,7 +8,7 @@ export type ParsedCommitWithHash = ParsedCommit & {
 }
 
 export async function parseCommits(
-  commits: Commit[]
+  commits: Commit[],
 ): Promise<ParsedCommitWithHash[]> {
   const through = new PassThrough()
   const commitMap: Record<string, Commit> = {}
@@ -43,7 +43,7 @@ export async function parseCommits(
           commits.push(commit)
         })
         .on('end', () => resolve(commits))
-    }
+    },
   )
 
   through.destroy()

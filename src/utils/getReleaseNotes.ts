@@ -6,7 +6,7 @@ export type ReleaseNotes = Map<string, Set<ParsedCommitWithHash>>
 const IGNORE_COMMIT_TYPE = ['chore']
 
 export async function getReleaseNotes(
-  commits: ParsedCommitWithHash[]
+  commits: ParsedCommitWithHash[],
 ): Promise<ReleaseNotes> {
   const releaseNotes: ReleaseNotes = new Map<
     string,
@@ -30,7 +30,7 @@ export async function getReleaseNotes(
 
 export function toMarkdown(
   context: ReleaseContext,
-  notes: ReleaseNotes
+  notes: ReleaseNotes,
 ): string {
   const markdown: string[] = []
 
@@ -40,7 +40,7 @@ export function toMarkdown(
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
-    }
+    },
   )
   markdown.push(`## ${context.nextRelease.tag} (${releaseDate})`)
 

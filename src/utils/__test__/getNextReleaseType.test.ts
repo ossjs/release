@@ -8,7 +8,7 @@ it('returns "major" for a commit that contains a "BREAKING CHANGE" footnote', ()
         header: 'fix: stuff',
         body: 'BREAKING CHANGE: This is a breaking change.',
       }),
-    ])
+    ]),
   ).toBe('major')
 })
 
@@ -18,7 +18,7 @@ it('returns "minor" for "feat" commits', () => {
       mockParsedCommit({
         header: 'feat: adds graphql support',
       }),
-    ])
+    ]),
   ).toBe('minor')
 
   expect(
@@ -29,7 +29,7 @@ it('returns "minor" for "feat" commits', () => {
       mockParsedCommit({
         header: 'fix: fix stuff',
       }),
-    ])
+    ]),
   ).toBe('minor')
 })
 
@@ -39,7 +39,7 @@ it('returns patch for "fix" commits', () => {
       mockParsedCommit({
         header: 'fix: return signature',
       }),
-    ])
+    ]),
   ).toBe('patch')
 
   expect(
@@ -50,7 +50,7 @@ it('returns patch for "fix" commits', () => {
       mockParsedCommit({
         header: 'docs: mention stuff',
       }),
-    ])
+    ]),
   ).toBe('patch')
 })
 
@@ -63,6 +63,6 @@ it('returns null when no commits bump the version', () => {
       mockParsedCommit({
         header: 'docs: mention cli arguments',
       }),
-    ])
+    ]),
   ).toBe(null)
 })

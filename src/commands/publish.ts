@@ -35,7 +35,7 @@ export class Publish extends Command {
       'preparing release for "%s/%s" from "%s"...',
       repo.owner,
       repo.name,
-      branchName
+      branchName,
     )
 
     // Get the latest release.
@@ -46,7 +46,7 @@ export class Publish extends Command {
       log.info(
         'found latest release: %s (%s)',
         latestRelease.tag,
-        latestRelease.hash
+        latestRelease.hash,
       )
     } else {
       log.info('found no previous releases, creating a new one...')
@@ -106,7 +106,7 @@ export class Publish extends Command {
     invariant(
       publishResult.error == null,
       'Failed to publish: the publish script exited.\n',
-      publishResult.error
+      publishResult.error,
     )
 
     log.info(publishResult.data)
@@ -127,7 +127,7 @@ export class Publish extends Command {
       invariant(
         commitResult.error == null,
         'Failed to create release commit!\n',
-        commitResult.error
+        commitResult.error,
       )
 
       revertQueue.push(async () => {
@@ -160,7 +160,7 @@ export class Publish extends Command {
       invariant(
         tagResult.error == null,
         'Failed to tag the release!\n',
-        tagResult.error
+        tagResult.error,
       )
 
       revertQueue.push(async () => {
@@ -184,7 +184,7 @@ export class Publish extends Command {
       invariant(
         pushResult.error == null,
         'Failed to push changes to origin!\n',
-        pushResult.error
+        pushResult.error,
       )
 
       log.info('pushed changes to "%s" (origin)!', repo.remote)
@@ -227,7 +227,7 @@ export class Publish extends Command {
         commentPromises.push(
           createComment(issueId, releaseCommentText).catch((error) => {
             log.error('commenting on issue "%s" failed: %s', error.message)
-          })
+          }),
         )
       }
 
