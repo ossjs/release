@@ -75,9 +75,8 @@ export class Publish extends Command {
 
     log.info('next release type: %s', nextReleaseType)
 
-    const prevVersion = latestRelease?.tag || '0.0.0'
+    const prevVersion = latestRelease?.tag || 'v0.0.0'
     const nextVersion = getNextVersion(prevVersion, nextReleaseType)
-    log.info('next version: %s -> %s', prevVersion, nextVersion)
 
     const context = createContext({
       repo,
@@ -87,6 +86,12 @@ export class Publish extends Command {
         publishedAt: new Date(),
       },
     })
+
+    log.info(
+      'next version: %s -> %s',
+      prevVersion.replace(/^v/, ''),
+      context.nextRelease.version,
+    )
 
     // Bump the version in package.json without committing it.
     bumpPackageJson(nextVersion)
