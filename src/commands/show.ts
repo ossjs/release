@@ -1,7 +1,6 @@
 import type { BuilderCallback } from 'yargs'
-import { invariant } from 'outvariant'
+import { format, invariant } from 'outvariant'
 import fetch from 'node-fetch'
-import { log } from '../logger'
 import { Command } from '../Command'
 import { getTag, TagPointer } from '../utils/git/getTag'
 import { getLatestRelease } from '../utils/git/getLatestRelease'
@@ -9,9 +8,9 @@ import { getTags } from '../utils/git/getTags'
 import { getCommit } from '../utils/git/getCommit'
 import { getInfo } from '../utils/git/getInfo'
 import { execAsync } from '../utils/execAsync'
+import { demandGitHubToken } from '../utils/env'
 
 interface Argv {
-  _: string[]
   tag?: string
 }
 
@@ -48,11 +47,13 @@ export class Show extends Command<Argv> {
       })
   }
 
-  public run = async (argv: Argv) => {
-    const [, tag] = argv._
+  public run = async () => {
+    demandGitHubToken()
 
-    const pointer = await this.getTagPointer(tag)
-    log.info('found tag "%s"!', pointer.tag)
+    const [, tag] = this.argv._
+
+    const pointer = await this.getTagPointer(tag?.toString())
+    this.log.info(format('found tag "%s"!', pointer.tag))
 
     const commit = await getCommit(pointer.hash)
 
@@ -64,7 +65,7 @@ export class Show extends Command<Argv> {
 
     // Print local Git info about the release commit.
     const commitOut = await execAsync(`git log -1 ${commit.commit.long}`)
-    log.info(commitOut)
+    this.log.info(commitOut)
 
     // Print the remote GitHub info about the release.
     const repo = await getInfo()
@@ -87,17 +88,19 @@ export class Show extends Command<Argv> {
         : ReleaseStatus.Public
       : ReleaseStatus.Unpublished
 
-    log.info('release status: %s', releaseStatus)
+    this.log.info(format('release status: %s', releaseStatus))
 
     if (
       releaseStatus === ReleaseStatus.Public ||
       releaseStatus === ReleaseStatus.Draft
     ) {
-      log.info('release url: %s', release?.html_url)
+      this.log.info(format('release url: %s', release?.html_url))
     }
 
     if (!isPublishedRelease) {
-      log.warn('release "%s" is not published to GitHub!', pointer.tag)
+      this.log.warn(
+        format('release "%s" is not published to GitHub!', pointer.tag),
+      )
     }
   }
 
@@ -108,7 +111,7 @@ export class Show extends Command<Argv> {
    */
   private async getTagPointer(tag?: string): Promise<TagPointer> {
     if (tag) {
-      log.info('looking up explicit "%s" tag...', tag)
+      this.log.info(format('looking up explicit "%s" tag...', tag))
       const pointer = await getTag(tag)
 
       invariant(
@@ -120,7 +123,7 @@ export class Show extends Command<Argv> {
       return pointer
     }
 
-    log.info('looking up the latest release tag...')
+    this.log.info('looking up the latest release tag...')
     const tags = await getTags()
 
     invariant(

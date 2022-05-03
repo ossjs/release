@@ -1,5 +1,4 @@
 import * as yargs from 'yargs'
-import { invariant } from 'outvariant'
 import { getConfig } from './utils/getConfig'
 
 // Commands.
@@ -8,18 +7,12 @@ import { Publish } from './commands/publish'
 
 const config = getConfig()
 
-invariant(
-  process.env.GITHUB_TOKEN,
-  'Failed to publish the package: the "GITHUB_TOKEN" environmental variable is not provided.',
-)
-
 yargs
   .usage('$0 <command> [options]')
-  .command(
-    Publish.command,
-    Publish.description,
-    Publish.builder,
-    new Publish(config).run,
+  .command(Publish.command, Publish.description, Publish.builder, (argv) =>
+    new Publish(config, argv).run(),
   )
-  .command(Show.command, Show.description, Show.builder, new Show(config).run)
+  .command(Show.command, Show.description, Show.builder, (argv) =>
+    new Show(config, argv).run(),
+  )
   .help().argv
