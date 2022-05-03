@@ -137,7 +137,7 @@ Publishes a new version of the package.
 
 ### `show`
 
-Displays information about a release.
+Displays information about a particular release.
 
 Release information includes the following:
 
@@ -162,3 +162,21 @@ Release information includes the following:
 # Display info about a specific release.
 <NAME> show v0.19.2
 ```
+
+## Comparison
+
+Below you see how Release compares to other tools. Keep in mind that I'm only comparing how those tools work _by default_ because that's the only thing I care about. Unlike Release, other tools here can satisfy different use-cases through configuration, which is both a blessing and a curse.
+
+|                                           | Release | Semantic Release                                                                             | Auto                                                                     | Changesets                                                                              |
+| ----------------------------------------- | ------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| First-class citizen                       | CLI     | Commit                                                                                       | Pull request (labels)                                                    | Changeset                                                                               |
+| Derives next version from commits         | ✅      | ✅                                                                                           | ✅                                                                       | ❌                                                                                      |
+| Creates a GitHub release                  | ✅      | [✅](https://github.com/semantic-release/semantic-release/releases/tag/v19.0.2)              | [✅](https://github.com/intuit/auto/releases/tag/v10.36.5)               | [✅](https://github.com/changesets/changesets/releases/tag/%40changesets%2Fgit%401.3.2) |
+| Creates a release commit in Git           | ✅      | ❌ <sup>1</sup>                                                                              | ✅                                                                       | ✅                                                                                      |
+| Comments on relevant GitHub issues        | ✅      | ✅                                                                                           | [✅](https://github.com/intuit/auto/issues/1651#issuecomment-1073389235) | ❌                                                                                      |
+| Comments on relevant GitHub pull requests | ✅      | [✅](https://github.com/semantic-release/semantic-release/pull/2330#issuecomment-1015001540) | [✅](https://github.com/intuit/auto/pull/2175#issuecomment-1073389222)   | ?                                                                                       |
+| Reverts tags/commits if publishing fails  | ✅      | ❌                                                                                           | ?                                                                        | ?                                                                                       |
+| Supports monorepos                        | ❌      | ✅                                                                                           | ✅                                                                       | ✅                                                                                      |
+| Support dry run                           | ❌      | ✅                                                                                           | ✅                                                                       | [❌](https://github.com/changesets/changesets/issues/614)                               |
+
+> <sup>1</sup> - requires additional plugins.
