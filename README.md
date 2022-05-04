@@ -129,6 +129,12 @@ Make sure to provide all environmental variables needed for publishing:
 
 Publishes a new version of the package.
 
+#### Options
+
+| Option name       | Type      | Description                                                                                                                                                                            |
+| ----------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--dry-run`, `-d` | `boolean` | Creates a release in a dry-run mode. **Note:** this still requires a valid `GITHUB_TOKEN` environmental variable, as the dry-run mode will perform read operations on your repository. |
+
 #### Example
 
 ```sh
