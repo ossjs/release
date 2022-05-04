@@ -1,4 +1,5 @@
-import { rest } from 'msw'
+import * as fileSystem from 'fs'
+import { ResponseResolver, rest } from 'msw'
 import { log } from '../../src/logger'
 import { Publish } from '../../src/commands/publish'
 import type { CreateReleaseResponse } from '../../src/utils/git/createRelease'
@@ -47,21 +48,22 @@ module.exports = {
   })
   await fs.exec(`git add . && git commit -m 'feat: new things'`)
 
-  const publish = new Publish({
-    script: 'echo "release script input: $RELEASE_VERSION"',
-  })
+  const publish = new Publish(
+    {
+      script: 'echo "release script input: $RELEASE_VERSION"',
+    },
+    { _: [] },
+  )
   await publish.run()
 
   expect(log.error).not.toHaveBeenCalled()
 
-  expect(log.info).toHaveBeenCalledWith('found %d new commit(s):', 2)
+  expect(log.info).toHaveBeenCalledWith(
+    expect.stringContaining('found 2 new commits:'),
+  )
 
   // Must notify about the next version.
-  expect(log.info).toHaveBeenCalledWith(
-    'next version: %s -> %s',
-    '0.0.0',
-    '0.1.0',
-  )
+  expect(log.info).toHaveBeenCalledWith('next version: 0.0.0 -> 0.1.0')
 
   // The release script is provided with the environmental variables.
   expect(log.info).toHaveBeenCalledWith('release script input: 0.1.0\n')
@@ -83,8 +85,8 @@ module.exports = {
     expect.stringContaining('0.1.0'),
   )
 
-  expect(log.info).toHaveBeenCalledWith('created release: %s', '/releases/1')
-  expect(log.info).toHaveBeenCalledWith('release "%s" completed!', 'v0.1.0')
+  expect(log.info).toHaveBeenCalledWith('created release: /releases/1')
+  expect(log.info).toHaveBeenCalledWith('release "v0.1.0" completed!')
 })
 
 it('releases a new version after an existing version', async () => {
@@ -113,26 +115,25 @@ it('releases a new version after an existing version', async () => {
   await execAsync(`git commit -m 'fix: stuff' --allow-empty`)
   await execAsync(`git commit -m 'feat: stuff' --allow-empty`)
 
-  const publish = new Publish({
-    script: 'echo "release script input: $RELEASE_VERSION"',
-  })
+  const publish = new Publish(
+    {
+      script: 'echo "release script input: $RELEASE_VERSION"',
+    },
+    { _: [] },
+  )
   await publish.run()
 
   expect(log.error).not.toHaveBeenCalled()
-  expect(log.info).toHaveBeenCalledWith('found %d new commit(s):', 2)
+  expect(log.info).toHaveBeenCalledWith(
+    expect.stringContaining('found 2 new commits:'),
+  )
 
   expect(log.info).toHaveBeenCalledWith(
-    'found latest release: %s (%s)',
-    'v1.2.3',
-    expect.any(String),
+    expect.stringContaining('found latest release: v1.2.3'),
   )
 
   // Must notify about the next version.
-  expect(log.info).toHaveBeenCalledWith(
-    'next version: %s -> %s',
-    '1.2.3',
-    '1.3.0',
-  )
+  expect(log.info).toHaveBeenCalledWith('next version: 1.2.3 -> 1.3.0')
 
   // The release script is provided with the environmental variables.
   expect(log.info).toHaveBeenCalledWith('release script input: 1.3.0\n')
@@ -154,8 +155,8 @@ it('releases a new version after an existing version', async () => {
     expect.stringContaining('v1.3.0'),
   )
 
-  expect(log.info).toHaveBeenCalledWith('created release: %s', '/releases/1')
-  expect(log.info).toHaveBeenCalledWith('release "%s" completed!', 'v1.3.0')
+  expect(log.info).toHaveBeenCalledWith('created release: /releases/1')
+  expect(log.info).toHaveBeenCalledWith('release "v1.3.0" completed!')
 })
 
 it('comments on relevant github issues', async () => {
@@ -199,20 +200,120 @@ module.exports = {
 }
     `,
   })
-  await fs.exec(`git add . && git commit -m 'feat: supports graphql (#10)'`)
+  await fs.exec(`git commit -m 'feat: supports graphql (#10)' --allow-empty`)
 
-  const publish = new Publish({
-    script: 'echo "release script input: $RELEASE_VERSION"',
-  })
+  const publish = new Publish(
+    {
+      script: 'echo "release script input: $RELEASE_VERSION"',
+    },
+    { _: [] },
+  )
   await publish.run()
 
-  expect(log.info).toHaveBeenCalledWith(
-    'commenting on %d referenced issue(s)...',
-    1,
-  )
+  expect(log.info).toHaveBeenCalledWith('commenting on 1 GitHub issue:\n  - 10')
   expect(commentsCreated).toEqual(
     new Map([['10', expect.stringContaining('## Released: v0.1.0 🎉')]]),
   )
 
-  expect(log.info).toHaveBeenCalledWith('release "%s" completed!', 'v0.1.0')
+  expect(log.info).toHaveBeenCalledWith('release "v0.1.0" completed!')
+})
+
+it('supports dry-run mode', async () => {
+  const gitHubReleaseHandler = jest.fn<
+    ReturnType<ResponseResolver>,
+    Parameters<ResponseResolver>
+  >((req, res, ctx) => {
+    return res(ctx.status(500))
+  })
+  api.use(
+    rest.post<never, never, CreateReleaseResponse>(
+      'https://api.github.com/repos/:owner/:repo/releases',
+      gitHubReleaseHandler,
+    ),
+    rest.get(
+      'https://api.github.com/repos/octocat/test/issues/:id',
+      (req, res, ctx) => {
+        return res(ctx.json({}))
+      },
+    ),
+  )
+
+  await fs.create({
+    'package.json': JSON.stringify({
+      name: 'test',
+      version: '1.2.3',
+    }),
+    'ossjs.release.config.js': `
+module.exports = {
+  script: 'exit 0',
+}
+    `,
+  })
+  await execAsync(`git commit -m 'chore(release): v1.2.3' --allow-empty`)
+  await execAsync('git tag v1.2.3')
+  await execAsync(`git commit -m 'fix: stuff (#2)' --allow-empty`)
+  await execAsync(`git commit -m 'feat: stuff' --allow-empty`)
+
+  const publish = new Publish(
+    {
+      script: 'touch release.script.artifact',
+    },
+    {
+      _: [],
+      dryRun: true,
+    },
+  )
+  await publish.run()
+
+  expect(log.info).toHaveBeenCalledWith(
+    'preparing release for "octocat/test" from branch "master"...',
+  )
+  expect(log.info).toHaveBeenCalledWith(
+    expect.stringContaining('found 2 new commits:'),
+  )
+
+  // Package.json version bump.
+  expect(log.info).toHaveBeenCalledWith('next release type: minor')
+  expect(log.info).toHaveBeenCalledWith('next version: 1.2.3 -> 1.3.0')
+  expect(log.warn).toHaveBeenCalledWith(
+    'skip version bump in package.json in dry-run mode (next: 1.3.0)',
+  )
+  expect(JSON.parse(await fs.readFile('package.json', 'utf8'))).toHaveProperty(
+    'version',
+    '1.2.3',
+  )
+
+  // Publishing script.
+  expect(log.warn).toHaveBeenCalledWith(
+    'skip executing publishing script in dry-run mode',
+  )
+  expect(fileSystem.existsSync(fs.resolve('release.script.artifact'))).toBe(
+    false,
+  )
+
+  // Release commit.
+  expect(log.warn).toHaveBeenCalledWith(
+    'skip creating a release commit in dry-run mode: "chore(release): v1.3.0"',
+  )
+  expect(log.info).not.toHaveBeenCalledWith('created release commit!')
+
+  // Release tag.
+  expect(log.warn).toHaveBeenCalledWith(
+    'skip creating a release tag in dry-run mode: v1.3.0',
+  )
+  expect(log.info).not.toHaveBeenCalledWith('created release tag "v1.3.0"!')
+  expect(await execAsync('git tag')).toBe('v1.2.3\n')
+
+  // Release notes.
+  expect(log.info).toHaveBeenCalledWith(
+    expect.stringContaining('generated release notes:\n\n## v1.3.0'),
+  )
+  expect(log.warn).toHaveBeenCalledWith(
+    'skip creating a GitHub release in dry-run mode',
+  )
+  expect(gitHubReleaseHandler).not.toHaveBeenCalled()
+
+  expect(log.warn).toHaveBeenCalledWith(
+    'release "v1.3.0" completed in dry-run mode!',
+  )
 })

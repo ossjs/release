@@ -20,9 +20,9 @@ afterAll(async () => {
 })
 
 it('exits given repository without any releases', async () => {
-  const show = new Show(mockConfig())
+  const show = new Show(mockConfig(), { _: [] })
 
-  await expect(show.run({ _: [] })).rejects.toThrow(
+  await expect(show.run()).rejects.toThrow(
     'Failed to retrieve release tag: repository has no releases.',
   )
 })
@@ -30,9 +30,9 @@ it('exits given repository without any releases', async () => {
 it('exits given a non-existing release', async () => {
   await execAsync('git commit -m "chore: release v1.0.0" --allow-empty')
   await execAsync(`git tag v1.0.0`)
-  const show = new Show(mockConfig())
+  const show = new Show(mockConfig(), { _: ['', 'v1.2.3'] })
 
-  await expect(show.run({ _: ['', 'v1.2.3'] })).rejects.toThrow(
+  await expect(show.run()).rejects.toThrow(
     'Failed to retrieve release tag: tag "v1.2.3" does not exist.',
   )
 })
@@ -51,20 +51,18 @@ it('displays info for explicit unpublished release', async () => {
   await execAsync(`git tag v1.0.0`)
   const pointer = await getTag('v1.0.0')
 
-  const show = new Show(mockConfig())
-  await show.run({ _: ['', 'v1.0.0'] })
+  const show = new Show(mockConfig(), { _: ['', 'v1.0.0'] })
+  await show.run()
 
-  expect(log.info).toHaveBeenCalledWith('found tag "%s"!', 'v1.0.0')
+  expect(log.info).toHaveBeenCalledWith('found tag "v1.0.0"!')
   expect(log.info).toHaveBeenCalledWith(
     expect.stringContaining(`commit ${pointer!.hash}`),
   )
   expect(log.info).toHaveBeenCalledWith(
-    'release status: %s',
-    ReleaseStatus.Unpublished,
+    `release status: ${ReleaseStatus.Unpublished}`,
   )
   expect(log.info).not.toHaveBeenCalledWith(
-    'release url: %s',
-    expect.any(String),
+    expect.stringContaining('release url:'),
   )
 })
 
@@ -87,18 +85,17 @@ it('displays info for explicit draft release', async () => {
   await execAsync(`git tag v1.0.0`)
   const pointer = await getTag('v1.0.0')
 
-  const show = new Show(mockConfig())
-  await show.run({ _: ['', 'v1.0.0'] })
+  const show = new Show(mockConfig(), { _: ['', 'v1.0.0'] })
+  await show.run()
 
-  expect(log.info).toHaveBeenCalledWith('found tag "%s"!', 'v1.0.0')
+  expect(log.info).toHaveBeenCalledWith('found tag "v1.0.0"!')
   expect(log.info).toHaveBeenCalledWith(
     expect.stringContaining(`commit ${pointer!.hash}`),
   )
   expect(log.info).toHaveBeenCalledWith(
-    'release status: %s',
-    ReleaseStatus.Draft,
+    `release status: ${ReleaseStatus.Draft}`,
   )
-  expect(log.info).toHaveBeenCalledWith('release url: %s', '/releases/v1.0.0')
+  expect(log.info).toHaveBeenCalledWith('release url: /releases/v1.0.0')
 })
 
 it('displays info for explicit public release', async () => {
@@ -119,18 +116,17 @@ it('displays info for explicit public release', async () => {
   await execAsync(`git tag v1.0.0`)
   const pointer = await getTag('v1.0.0')
 
-  const show = new Show(mockConfig())
-  await show.run({ _: ['', 'v1.0.0'] })
+  const show = new Show(mockConfig(), { _: ['', 'v1.0.0'] })
+  await show.run()
 
-  expect(log.info).toHaveBeenCalledWith('found tag "%s"!', 'v1.0.0')
+  expect(log.info).toHaveBeenCalledWith('found tag "v1.0.0"!')
   expect(log.info).toHaveBeenCalledWith(
     expect.stringContaining(`commit ${pointer!.hash}`),
   )
   expect(log.info).toHaveBeenCalledWith(
-    'release status: %s',
-    ReleaseStatus.Public,
+    `release status: ${ReleaseStatus.Public}`,
   )
-  expect(log.info).toHaveBeenCalledWith('release url: %s', '/releases/v1.0.0')
+  expect(log.info).toHaveBeenCalledWith('release url: /releases/v1.0.0')
 })
 
 it('displays info for implicit unpublished release', async () => {
@@ -147,20 +143,18 @@ it('displays info for implicit unpublished release', async () => {
   await execAsync(`git tag v1.2.3`)
   const pointer = await getTag('v1.2.3')
 
-  const show = new Show(mockConfig())
-  await show.run({ _: [] })
+  const show = new Show(mockConfig(), { _: [] })
+  await show.run()
 
-  expect(log.info).toHaveBeenCalledWith('found tag "%s"!', 'v1.2.3')
+  expect(log.info).toHaveBeenCalledWith('found tag "v1.2.3"!')
   expect(log.info).toHaveBeenCalledWith(
     expect.stringContaining(`commit ${pointer!.hash}`),
   )
   expect(log.info).toHaveBeenCalledWith(
-    'release status: %s',
-    ReleaseStatus.Unpublished,
+    `release status: ${ReleaseStatus.Unpublished}`,
   )
   expect(log.info).not.toHaveBeenCalledWith(
-    'release url: %s',
-    expect.any(String),
+    expect.stringContaining('release url:'),
   )
 })
 
@@ -183,18 +177,17 @@ it('displays info for explicit draft release', async () => {
   await execAsync(`git tag v1.2.3`)
   const pointer = await getTag('v1.2.3')
 
-  const show = new Show(mockConfig())
-  await show.run({ _: [] })
+  const show = new Show(mockConfig(), { _: [] })
+  await show.run()
 
-  expect(log.info).toHaveBeenCalledWith('found tag "%s"!', 'v1.2.3')
+  expect(log.info).toHaveBeenCalledWith('found tag "v1.2.3"!')
   expect(log.info).toHaveBeenCalledWith(
     expect.stringContaining(`commit ${pointer!.hash}`),
   )
   expect(log.info).toHaveBeenCalledWith(
-    'release status: %s',
-    ReleaseStatus.Draft,
+    `release status: ${ReleaseStatus.Draft}`,
   )
-  expect(log.info).toHaveBeenCalledWith('release url: %s', '/releases/v1.2.3')
+  expect(log.info).toHaveBeenCalledWith('release url: /releases/v1.2.3')
 })
 
 it('displays info for explicit public release', async () => {
@@ -215,16 +208,15 @@ it('displays info for explicit public release', async () => {
   await execAsync(`git tag v1.2.3`)
   const pointer = await getTag('v1.2.3')
 
-  const show = new Show(mockConfig())
-  await show.run({ _: [] })
+  const show = new Show(mockConfig(), { _: [] })
+  await show.run()
 
-  expect(log.info).toHaveBeenCalledWith('found tag "%s"!', 'v1.2.3')
+  expect(log.info).toHaveBeenCalledWith('found tag "v1.2.3"!')
   expect(log.info).toHaveBeenCalledWith(
     expect.stringContaining(`commit ${pointer!.hash}`),
   )
   expect(log.info).toHaveBeenCalledWith(
-    'release status: %s',
-    ReleaseStatus.Public,
+    `release status: ${ReleaseStatus.Public}`,
   )
-  expect(log.info).toHaveBeenCalledWith('release url: %s', '/releases/v1.2.3')
+  expect(log.info).toHaveBeenCalledWith('release url: /releases/v1.2.3')
 })
