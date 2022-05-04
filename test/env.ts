@@ -1,9 +1,31 @@
-import { log } from '../src/logger'
-import { createTeardown, TeardownApi } from 'fs-teardown'
+import { rest } from 'msw'
 import { SetupServerApi, setupServer } from 'msw/node'
+import { createTeardown, TeardownApi } from 'fs-teardown'
 import { Git } from 'node-git-server'
+import { log } from '../src/logger'
 import { createOrigin, initGit, startGitProvider } from './utils'
 import { execAsync } from '../src/utils/execAsync'
+import { requiredGitHubTokenScopes } from '../src/utils/github/validateAccessToken'
+
+export const api = setupServer(
+  rest.get('https://api.github.com', (req, res, ctx) => {
+    // Treat "GITHUB_TOKEN" environmental variable value during tests
+    // as a valid GitHub personal access token with sufficient permission scopes.
+    return res(ctx.set('x-oauth-scopes', requiredGitHubTokenScopes.join(', ')))
+  }),
+)
+
+beforeAll(() => {
+  api.listen()
+})
+
+afterEach(() => {
+  api.resetHandlers()
+})
+
+afterAll(() => {
+  api.close()
+})
 
 export interface TestEnvironment {
   setup(): Promise<void>
@@ -17,7 +39,6 @@ export interface TestEnvironment {
 
 export function testEnvironment(testName: string): TestEnvironment {
   const origin = createOrigin()
-  const api = setupServer()
   const fs = createTeardown({
     rootDir: `ossjs-release/${testName}`,
   })
@@ -39,14 +60,12 @@ export function testEnvironment(testName: string): TestEnvironment {
         cwd: fs.resolve(),
       })
 
-      api.listen()
       await fs.prepare()
       await startGitProvider(git, await origin.get())
       await initGit(fs, origin.url)
     },
     async reset() {
       jest.resetAllMocks()
-      api.resetHandlers()
       await fs.reset()
       await initGit(fs, origin.url)
     },
@@ -54,7 +73,6 @@ export function testEnvironment(testName: string): TestEnvironment {
       execAsync.restoreContext()
 
       jest.restoreAllMocks()
-      api.close()
       await fs.cleanup()
       await git.close()
     },

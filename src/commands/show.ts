@@ -48,7 +48,10 @@ export class Show extends Command<Argv> {
   }
 
   public run = async () => {
-    demandGitHubToken()
+    await demandGitHubToken().catch((error) => {
+      this.log.error(error.message)
+      process.exit(1)
+    })
 
     const [, tag] = this.argv._
 

@@ -50,9 +50,12 @@ export class Publish extends Command<Argv> {
   private revertQueue: RevertAction[] = []
 
   public run = async () => {
-    this.revertQueue = []
+    await demandGitHubToken().catch((error) => {
+      this.log.error(error.message)
+      process.exit(1)
+    })
 
-    demandGitHubToken()
+    this.revertQueue = []
 
     // Extract repository information (remote/owner/name).
     const repo = await getInfo()
