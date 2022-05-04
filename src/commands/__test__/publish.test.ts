@@ -1,10 +1,10 @@
 import * as fileSystem from 'fs'
 import { ResponseResolver, rest } from 'msw'
-import { log } from '../../src/logger'
-import { Publish } from '../../src/commands/publish'
-import type { CreateReleaseResponse } from '../../src/utils/git/createRelease'
-import { testEnvironment } from '../env'
-import { execAsync } from '../../src/utils/execAsync'
+import { log } from '../../logger'
+import { Publish } from '../publish'
+import type { CreateReleaseResponse } from '../../utils/git/createRelease'
+import { testEnvironment } from '../../../test/env'
+import { execAsync } from '../../utils/execAsync'
 
 const { setup, reset, cleanup, fs, api } = testEnvironment('publish')
 

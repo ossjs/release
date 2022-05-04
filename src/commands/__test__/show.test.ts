@@ -1,9 +1,9 @@
 import { rest } from 'msw'
-import { ReleaseStatus, Show } from '../../src/commands/show'
-import { execAsync } from '../../src/utils/execAsync'
-import { getTag } from '../../src/utils/git/getTag'
-import { testEnvironment } from '../env'
-import { mockConfig } from '../fixtures'
+import { ReleaseStatus, Show } from '../../commands/show'
+import { execAsync } from '../../utils/execAsync'
+import { getTag } from '../../utils/git/getTag'
+import { testEnvironment } from '../../../test/env'
+import { mockConfig } from '../../../test/fixtures'
 
 const { setup, reset, cleanup, api, log } = testEnvironment('show')
 
