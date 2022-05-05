@@ -3,6 +3,11 @@ import gitLogParser, { Commit } from 'git-log-parser'
 import { execAsync } from '../execAsync'
 
 export async function getCommit(hash: string): Promise<Commit | undefined> {
+  Object.assign(gitLogParser.fields, {
+    hash: 'H',
+    message: 'B',
+  })
+
   const result = await getStream.array<Commit>(
     gitLogParser.parse(
       {

@@ -17,10 +17,10 @@ export function getCommits({ after }: GetCommitsOptions = {}): Promise<
   return getStream.array<gitLogParser.Commit>(
     gitLogParser.parse(
       {
-        _: `${after ? `${after}..` : ''}HEAD`,
+        _: after ? `${after}..HEAD` : '',
       },
       {
-        cwd: execAsync.contextOptions.cwd || process.cwd(),
+        cwd: execAsync.contextOptions.cwd,
       },
     ),
   )

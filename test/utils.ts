@@ -11,9 +11,7 @@ export async function initGit(
   await fsMock.exec(
     'git config user.email "actions@github.com" && git config user.name "GitHub Actions"',
   )
-  await fsMock.exec(
-    'git add . && git commit -m "chore(test): initial commit" --allow-empty',
-  )
+  await fsMock.exec('git commit -m "chore(test): initial commit" --allow-empty')
   await fsMock.exec('git push -u origin master')
 }
 
