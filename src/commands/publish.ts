@@ -148,6 +148,7 @@ export class Publish extends Command<Argv> {
       )
     } else {
       bumpPackageJson(nextVersion)
+      this.log.info('bumped version in package.json to:', nextVersion)
     }
 
     // Execute the publishing script.
@@ -219,7 +220,12 @@ export class Publish extends Command<Argv> {
     this.log.info('executing publishing script...')
 
     const publishResult = await until(() => {
-      return execAsync(this.config.script, { env })
+      return execAsync(this.config.script, {
+        env: {
+          ...process.env,
+          ...env,
+        },
+      })
     })
 
     invariant(
