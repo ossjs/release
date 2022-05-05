@@ -5,14 +5,17 @@
   "main": "./bin/build/index.js",
   "author": "Artem Zakharchenko <kettanaito@gmail.com>",
   "license": "MIT",
-  "bin": "./bin/cli.sh",
+  "bin": {
+    "release": "./bin/cli.sh"
+  },
   "files": [
     "bin"
   ],
   "scripts": {
     "start": "yarn build -w",
     "build": "tsc",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "release": "./bin/cli.sh publish"
   },
   "devDependencies": {
     "@types/jest": "^27.4.1",
