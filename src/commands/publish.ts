@@ -83,28 +83,31 @@ export class Publish extends Command<Argv> {
         ),
       )
     } else {
-      this.log.info('found no previous releases, creating a new one...')
+      this.log.info('found no previous releases, creating the first one...')
     }
 
-    const commits = await getCommits({
+    const rawCommits = await getCommits({
       after: latestRelease?.hash,
-    }).then(parseCommits)
+    })
+
+    this.log.info(
+      format(
+        'found %d new %s:\n%s',
+        rawCommits.length,
+        rawCommits.length > 1 ? 'commits' : 'commit',
+        rawCommits
+          .map((commit) => format('  - %s (%s)', commit.subject, commit.hash))
+          .join('\n'),
+      ),
+    )
+
+    const commits = await parseCommits(rawCommits)
+    this.log.info('successfully parsed commits: %d', commits.length)
 
     if (commits.length === 0) {
       this.log.warn('no commits since the latest release, skipping...')
       return
     }
-
-    this.log.info(
-      format(
-        'found %d new %s:\n%s',
-        commits.length,
-        commits.length > 1 ? 'commits' : 'commit',
-        commits
-          .map((commit) => format('  - %s (%s)', commit.header, commit.hash))
-          .join('\n'),
-      ),
-    )
 
     // Get the next release type and version number.
     const nextReleaseType = getNextReleaseType(commits)
@@ -329,7 +332,7 @@ export class Publish extends Command<Argv> {
   ): Promise<string> {
     const releaseNotes = await getReleaseNotes(commits)
     const markdown = toMarkdown(this.context, releaseNotes)
-    this.log.info(`generated release notes:\n\n${markdown}`)
+    this.log.info(`generated release notes:\n\n${markdown}\n`)
 
     return markdown
   }
@@ -423,7 +426,7 @@ export class Publish extends Command<Argv> {
 
       await Promise.allSettled(commentPromises)
     } else {
-      this.log.info('no referenced issues, nothing to comment')
+      this.log.info('no referenced GitHub issues, nothing to comment!')
     }
   }
 }
