@@ -15,7 +15,7 @@
     "start": "yarn build -w",
     "build": "tsc",
     "test": "jest --runInBand",
-    "release": "./bin/cli.sh publish --dry-run"
+    "release": "./bin/cli.sh publish"
   },
   "devDependencies": {
     "@types/jest": "^27.4.1",
