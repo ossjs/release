@@ -1,11 +1,14 @@
 {
   "name": "@ossjs/release",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "Minimalistic, opinionated, and predictable release automation tool.",
   "main": "./bin/build/index.js",
   "author": "Artem Zakharchenko <kettanaito@gmail.com>",
   "license": "MIT",
   "bin": "./bin/cli.sh",
+  "files": [
+    "bin"
+  ],
   "scripts": {
     "start": "yarn build -w",
     "build": "tsc",
