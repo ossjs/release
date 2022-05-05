@@ -1,3 +1,3 @@
 module.exports = {
-  script: 'echo "hello world"',
+  script: 'npm publish',
 }
