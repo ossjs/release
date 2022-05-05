@@ -205,6 +205,12 @@ export class Publish extends Command<Argv> {
    * Execute the release script specified in the configuration.
    */
   private async runReleaseScript(): Promise<void> {
+    const env = {
+      RELEASE_VERSION: this.context.nextRelease.version,
+    }
+
+    this.log.info('preparing to run the publishing script with:\n%o', env)
+
     if (this.argv.dryRun) {
       this.log.warn('skip executing publishing script in dry-run mode')
       return
@@ -213,16 +219,12 @@ export class Publish extends Command<Argv> {
     this.log.info('executing publishing script...')
 
     const publishResult = await until(() => {
-      return execAsync(this.config.script, {
-        env: {
-          RELEASE_VERSION: this.context.nextRelease.version,
-        },
-      })
+      return execAsync(this.config.script, { env })
     })
 
     invariant(
       publishResult.error == null,
-      'Failed to publish: the publish script exited.\n',
+      'Failed to publish: the publish script exited.\n%s',
       publishResult.error,
     )
 
