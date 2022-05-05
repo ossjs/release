@@ -395,7 +395,7 @@ export class Publish extends Command<Argv> {
       if (this.argv.dryRun) {
         this.log.warn(
           format(
-            'skip commenting on %d GitHub %s: %s',
+            'skip commenting on %d GitHub %s:\n%s',
             issueIds.size,
             issuesNoun,
             issuesDisplayList,
