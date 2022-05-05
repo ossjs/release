@@ -53,7 +53,7 @@ export function parseOriginUrl(origin: string): [string, string] {
 
   if (/^http(s)?:\/\//.test(origin)) {
     const url = new URL(origin)
-    const match = /\/(.+?)\/(.+?)\.git$/.exec(url.pathname)
+    const match = /\/(.+?)\/(.+?)(\.git)?$/.exec(url.pathname)
 
     invariant(
       match,

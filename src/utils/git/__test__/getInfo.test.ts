@@ -46,3 +46,15 @@ it('parses HTTPS remote url', async () => {
     url: 'https://github.com/octocat/test/',
   })
 })
+
+it('parses HTTPS remote url without the ".git" suffix', async () => {
+  await execAsync('git init')
+  await execAsync('git remote add origin https://github.com/octocat/test')
+
+  expect(await getInfo()).toEqual<GitInfo>({
+    remote: 'https://github.com/octocat/test',
+    owner: 'octocat',
+    name: 'test',
+    url: 'https://github.com/octocat/test/',
+  })
+})
