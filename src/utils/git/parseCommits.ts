@@ -14,9 +14,10 @@ export async function parseCommits(
   const commitMap: Record<string, Commit> = {}
 
   for (const commit of commits) {
-    const { subject } = commit
-    commitMap[subject] = commit
-    through.write(subject)
+    commitMap[commit.subject] = commit
+    const message = [commit.subject, commit.body].filter(Boolean).join('\n')
+
+    through.write(message, 'utf8')
   }
 
   through.end()

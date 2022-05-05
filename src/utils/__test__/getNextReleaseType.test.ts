@@ -1,68 +1,118 @@
-import { mockParsedCommit } from '../../../test/fixtures'
+import { mockCommit } from '../../../test/fixtures'
 import { getNextReleaseType } from '../getNextReleaseType'
+import { parseCommits } from '../git/parseCommits'
 
-it('returns "major" for a commit that contains a "BREAKING CHANGE" footnote', () => {
+it('returns "major" for a "feat" commit that contains a "BREAKING CHANGE" footnote', async () => {
   expect(
-    getNextReleaseType([
-      mockParsedCommit({
-        header: 'fix: stuff',
-        body: 'BREAKING CHANGE: This is a breaking change.',
-      }),
-    ]),
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'fix: stuff',
+          body: 'BREAKING CHANGE: This is a breaking change.',
+        }),
+      ]),
+    ),
   ).toBe('major')
 })
 
-it('returns "minor" for "feat" commits', () => {
+it('returns "major" for "feat" commit with a subject and a "BREAKING CHANGE" footnote', async () => {
   expect(
-    getNextReleaseType([
-      mockParsedCommit({
-        header: 'feat: adds graphql support',
-      }),
-    ]),
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'feat(parseUrl): support relative urls',
+          body: 'BREAKING CHANGE: This is a breaking change.',
+        }),
+      ]),
+    ),
+  ).toBe('major')
+})
+
+it('returns "minor" for "feat" commits', async () => {
+  expect(
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'feat: adds graphql support',
+        }),
+      ]),
+    ),
   ).toBe('minor')
 
   expect(
-    getNextReleaseType([
-      mockParsedCommit({
-        header: 'feat: adds graphql support',
-      }),
-      mockParsedCommit({
-        header: 'fix: fix stuff',
-      }),
-    ]),
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'feat: adds graphql support',
+        }),
+        mockCommit({
+          subject: 'fix: fix stuff',
+        }),
+      ]),
+    ),
   ).toBe('minor')
 })
 
-it('returns patch for "fix" commits', () => {
+it('returns "minor" for "feat" commit with a subject', async () => {
   expect(
-    getNextReleaseType([
-      mockParsedCommit({
-        header: 'fix: return signature',
-      }),
-    ]),
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'feat(parseUrl): support nullable suffi',
+        }),
+      ]),
+    ),
+  ).toBe('minor')
+})
+
+it('returns "patch" for "fix" commits', async () => {
+  expect(
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'fix: return signature',
+        }),
+      ]),
+    ),
   ).toBe('patch')
 
   expect(
-    getNextReleaseType([
-      mockParsedCommit({
-        header: 'fix: return signature',
-      }),
-      mockParsedCommit({
-        header: 'docs: mention stuff',
-      }),
-    ]),
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'fix: return signature',
+        }),
+        mockCommit({
+          subject: 'docs: mention stuff',
+        }),
+      ]),
+    ),
   ).toBe('patch')
 })
 
-it('returns null when no commits bump the version', () => {
+it('returns "patch" for "fix" commit with a subject', async () => {
   expect(
-    getNextReleaseType([
-      mockParsedCommit({
-        header: 'chore: design better releases',
-      }),
-      mockParsedCommit({
-        header: 'docs: mention cli arguments',
-      }),
-    ]),
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'fix(parseUrl): support nullable suffix',
+        }),
+      ]),
+    ),
+  ).toBe('patch')
+})
+
+it('returns null when no commits bump the version', async () => {
+  expect(
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'chore: design better releases',
+        }),
+        mockCommit({
+          subject: 'docs: mention cli arguments',
+        }),
+      ]),
+    ),
   ).toBe(null)
 })
