@@ -96,7 +96,7 @@ export class Publish extends Command<Argv> {
         rawCommits.length,
         rawCommits.length > 1 ? 'commits' : 'commit',
         rawCommits
-          .map((commit) => format('  - %s (%s)', commit.subject, commit.hash))
+          .map((commit) => format('  - %s %s', commit.hash, commit.subject))
           .join('\n'),
       ),
     )
