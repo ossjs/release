@@ -212,10 +212,6 @@ export class Publish extends Command<Argv> {
 
     this.log.info('preparing to run the publishing script with:\n%o', env)
 
-    if (process.env.NPM_TOKEN) {
-      this.log.info('forwarding "NPM_TOKEN" environmental variable...')
-    }
-
     if (this.argv.dryRun) {
       this.log.warn('skip executing publishing script in dry-run mode')
       return
@@ -235,7 +231,7 @@ export class Publish extends Command<Argv> {
     invariant(
       publishResult.error == null,
       'Failed to publish: the publish script exited.\n%s',
-      publishResult.error,
+      publishResult.error?.message,
     )
 
     this.log.info(publishResult.data)

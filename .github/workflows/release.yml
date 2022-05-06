@@ -22,6 +22,11 @@ jobs:
           always-auth: true
           registry-url: https://registry.npmjs.org
 
+      - name: Setup Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
