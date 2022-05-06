@@ -19,6 +19,7 @@ jobs:
         with:
           node-version: 16
           cache: yarn
+          always-auth: true
           registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
