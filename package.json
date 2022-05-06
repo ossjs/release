@@ -12,9 +12,10 @@
     "bin"
   ],
   "scripts": {
-    "start": "yarn build -w",
+    "start": "npm run build build -w",
     "build": "tsc",
     "test": "jest --runInBand",
+    "prerelease": "npm run build && npm test",
     "release": "./bin/cli.sh publish"
   },
   "devDependencies": {
