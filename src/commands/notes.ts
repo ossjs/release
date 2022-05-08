@@ -89,11 +89,6 @@ export class Notes extends Command<Argv> {
       tagPointer.hash,
     )
 
-    /**
-     * @fixme Pretty-print the release commit instead of logging a commit object.
-     */
-    this.log.info(format('found release commit:\n%o', releaseCommit))
-
     // Retrieve the pointer to the previous release.
     const tags = await getTags().then((tags) => {
       return tags.sort(byReleaseVersion)
