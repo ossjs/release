@@ -67,7 +67,7 @@ The bottom line is: failed releases happen. The package registry may be down, yo
 ## Install
 
 ```sh
-npm install <NAME> --save-dev
+npm install @ossjs/release --save-dev
 ```
 
 ## Configuration
@@ -92,7 +92,7 @@ This tool exposes a CLI which you can use with any continuous integration provid
 {
   "name": "my-package",
   "scripts": {
-    "release": "<NAME> publish"
+    "release": "release publish"
   }
 }
 ```
@@ -154,7 +154,7 @@ Publishes a new version of the package.
 #### Example
 
 ```sh
-<NAME> publish
+release publish
 ```
 
 ### `show`
@@ -177,12 +177,12 @@ Release information includes the following:
 
 ```sh
 # Display info about the latest release.
-<NAME> show
+release show
 ```
 
 ```sh
 # Display info about a specific release.
-<NAME> show v0.19.2
+release show v0.19.2
 ```
 
 ## Comparison
