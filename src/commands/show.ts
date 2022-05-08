@@ -11,7 +11,7 @@ import { execAsync } from '../utils/execAsync'
 import { demandGitHubToken } from '../utils/env'
 
 interface Argv {
-  tag?: string
+  _: [path: string, tag?: string]
 }
 
 export enum ReleaseStatus {

@@ -12,7 +12,7 @@
     "bin"
   ],
   "scripts": {
-    "start": "npm run build build -w",
+    "start": "npm run build -- -w",
     "build": "tsc",
     "test": "jest --runInBand",
     "prerelease": "npm run build && npm test",

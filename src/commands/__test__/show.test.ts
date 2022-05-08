@@ -4,6 +4,7 @@ import { execAsync } from '../../utils/execAsync'
 import { getTag } from '../../utils/git/getTag'
 import { testEnvironment } from '../../../test/env'
 import { mockConfig } from '../../../test/fixtures'
+import { commit } from '../../utils/git/commit'
 
 const { setup, reset, cleanup, api, log } = testEnvironment('show')
 
@@ -20,7 +21,7 @@ afterAll(async () => {
 })
 
 it('exits given repository without any releases', async () => {
-  const show = new Show(mockConfig(), { _: [] })
+  const show = new Show(mockConfig(), { _: [''] })
 
   await expect(show.run()).rejects.toThrow(
     'Failed to retrieve release tag: repository has no releases.',
@@ -139,16 +140,18 @@ it('displays info for implicit unpublished release', async () => {
     ),
   )
 
-  await execAsync('git commit -m "chore: release v1.2.3" --allow-empty')
+  const releaseCommit = await commit({
+    message: 'chore(release): v1.2.3',
+    allowEmpty: true,
+  })
   await execAsync(`git tag v1.2.3`)
-  const pointer = await getTag('v1.2.3')
 
-  const show = new Show(mockConfig(), { _: [] })
+  const show = new Show(mockConfig(), { _: [''] })
   await show.run()
 
   expect(log.info).toHaveBeenCalledWith('found tag "v1.2.3"!')
   expect(log.info).toHaveBeenCalledWith(
-    expect.stringContaining(`commit ${pointer!.hash}`),
+    expect.stringContaining(`commit ${releaseCommit.hash}`),
   )
   expect(log.info).toHaveBeenCalledWith(
     `release status: ${ReleaseStatus.Unpublished}`,
@@ -173,16 +176,18 @@ it('displays info for explicit draft release', async () => {
     ),
   )
 
-  await execAsync('git commit -m "chore: release v1.2.3" --allow-empty')
+  const releaseCommit = await commit({
+    message: 'chore(release): v1.2.3',
+    allowEmpty: true,
+  })
   await execAsync(`git tag v1.2.3`)
-  const pointer = await getTag('v1.2.3')
 
-  const show = new Show(mockConfig(), { _: [] })
+  const show = new Show(mockConfig(), { _: [''] })
   await show.run()
 
   expect(log.info).toHaveBeenCalledWith('found tag "v1.2.3"!')
   expect(log.info).toHaveBeenCalledWith(
-    expect.stringContaining(`commit ${pointer!.hash}`),
+    expect.stringContaining(`commit ${releaseCommit.hash}`),
   )
   expect(log.info).toHaveBeenCalledWith(
     `release status: ${ReleaseStatus.Draft}`,
@@ -204,16 +209,18 @@ it('displays info for explicit public release', async () => {
     ),
   )
 
-  await execAsync('git commit -m "chore: release v1.2.3" --allow-empty')
+  const releaseCommit = await commit({
+    message: 'chore(release): v1.2.3',
+    allowEmpty: true,
+  })
   await execAsync(`git tag v1.2.3`)
-  const pointer = await getTag('v1.2.3')
 
-  const show = new Show(mockConfig(), { _: [] })
+  const show = new Show(mockConfig(), { _: [''] })
   await show.run()
 
   expect(log.info).toHaveBeenCalledWith('found tag "v1.2.3"!')
   expect(log.info).toHaveBeenCalledWith(
-    expect.stringContaining(`commit ${pointer!.hash}`),
+    expect.stringContaining(`commit ${releaseCommit.hash}`),
   )
   expect(log.info).toHaveBeenCalledWith(
     `release status: ${ReleaseStatus.Public}`,

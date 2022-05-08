@@ -157,6 +157,30 @@ Publishes a new version of the package.
 release publish
 ```
 
+### `notes`
+
+Generates release notes and creates a new GitHub release for the given release tag.
+
+This command is designed to recover from a partially failed release process, as well as to generate changelogs for old releases.
+
+- This command requires an existing (merged) release tag;
+- This command accepts past release tags;
+- This command has no effect if a GitHub release for the given tag already exists.
+
+#### Arguments
+
+| Argument name | Type     | Description              |
+| ------------- | -------- | ------------------------ |
+| `tag`         | `string` | Tag name of the release. |
+
+#### Example
+
+```sh
+# Generate release notes and create a GitHub release
+# for the release tag "v1.0.3".
+release notes v1.0.3
+```
+
 ### `show`
 
 Displays information about a particular release.
