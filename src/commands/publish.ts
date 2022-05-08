@@ -14,14 +14,13 @@ import { getTags } from '../utils/git/getTags'
 import { execAsync } from '../utils/execAsync'
 import { commit } from '../utils/git/commit'
 import { createTag } from '../utils/git/createTag'
-import { getReleaseNotes, toMarkdown } from '../utils/getReleaseNotes'
-import { createRelease } from '../utils/git/createRelease'
 import { push } from '../utils/git/push'
 import { getReleaseRefs } from '../utils/getReleaseRefs'
 import { parseCommits, ParsedCommitWithHash } from '../utils/git/parseCommits'
 import { createComment } from '../utils/github/createComment'
 import { createReleaseComment } from '../utils/createReleaseComment'
 import { demandGitHubToken } from '../utils/env'
+import { Notes } from './notes'
 
 interface Argv {
   dryRun?: boolean
@@ -87,7 +86,7 @@ export class Publish extends Command<Argv> {
     }
 
     const rawCommits = await getCommits({
-      after: latestRelease?.hash,
+      since: latestRelease?.hash,
     })
 
     this.log.info(
@@ -275,6 +274,10 @@ export class Publish extends Command<Argv> {
       commitResult.error,
     )
 
+    this.log.info(
+      format('created a release commit at "%s"!', commitResult.data.hash),
+    )
+
     this.revertQueue.push(async () => {
       this.log.info('reverting the release commit...')
 
@@ -338,11 +341,10 @@ export class Publish extends Command<Argv> {
   private async generateReleaseNotes(
     commits: ParsedCommitWithHash[],
   ): Promise<string> {
-    const releaseNotes = await getReleaseNotes(commits)
-    const markdown = toMarkdown(this.context, releaseNotes)
-    this.log.info(`generated release notes:\n\n${markdown}\n`)
+    const releaseNotes = await Notes.generateReleaseNotes(this.context, commits)
+    this.log.info(`generated release notes:\n\n${releaseNotes}\n`)
 
-    return markdown
+    return releaseNotes
   }
 
   /**
@@ -374,7 +376,8 @@ export class Publish extends Command<Argv> {
       return '#'
     }
 
-    const releaseUrl = await createRelease(this.context, releaseNotes)
+    const release = await Notes.createRelease(this.context, releaseNotes)
+    const { html_url: releaseUrl } = release
     this.log.info(format('created release: %s', releaseUrl))
 
     return releaseUrl

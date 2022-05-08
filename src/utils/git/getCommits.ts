@@ -3,21 +3,32 @@ import * as gitLogParser from 'git-log-parser'
 import { execAsync } from '../execAsync'
 
 interface GetCommitsOptions {
-  after?: string
+  since?: string
+  until?: string
 }
 
-export function getCommits({ after }: GetCommitsOptions = {}): Promise<
-  gitLogParser.Commit[]
-> {
+/**
+ * Return the list of parsed commits within the given range.
+ */
+export function getCommits({
+  since,
+  until = 'HEAD',
+}: GetCommitsOptions = {}): Promise<gitLogParser.Commit[]> {
   Object.assign(gitLogParser.fields, {
     hash: 'H',
     message: 'B',
   })
 
+  const range: string = since ? `${since}..${until}` : until
+
+  // When only the "until" commit is specified, skip the first commit.
+  const skip = range === until && until !== 'HEAD' ? 1 : undefined
+
   return getStream.array<gitLogParser.Commit>(
     gitLogParser.parse(
       {
-        _: after ? `${after}..HEAD` : '',
+        _: range,
+        skip,
       },
       {
         cwd: execAsync.contextOptions.cwd,
