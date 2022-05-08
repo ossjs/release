@@ -2,7 +2,7 @@ import * as fileSystem from 'fs'
 import { ResponseResolver, rest } from 'msw'
 import { log } from '../../logger'
 import { Publish } from '../publish'
-import type { CreateReleaseResponse } from '../../utils/git/createRelease'
+import type { GitHubRelease } from '../../utils/github/getGitHubRelease'
 import { testEnvironment } from '../../../test/env'
 import { execAsync } from '../../utils/execAsync'
 
@@ -22,7 +22,7 @@ afterAll(async () => {
 
 it('publishes the next minor version', async () => {
   api.use(
-    rest.post<never, never, CreateReleaseResponse>(
+    rest.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
       (req, res, ctx) => {
         return res(
@@ -91,7 +91,7 @@ module.exports = {
 
 it('releases a new version after an existing version', async () => {
   api.use(
-    rest.post<never, never, CreateReleaseResponse>(
+    rest.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
       (req, res, ctx) => {
         return res(
@@ -163,7 +163,7 @@ it('comments on relevant github issues', async () => {
   const commentsCreated = new Map<string, string>()
 
   api.use(
-    rest.post<never, never, CreateReleaseResponse>(
+    rest.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
       (req, res, ctx) => {
         return res(
@@ -226,7 +226,7 @@ it('supports dry-run mode', async () => {
     return res(ctx.status(500))
   })
   api.use(
-    rest.post<never, never, CreateReleaseResponse>(
+    rest.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
       gitHubReleaseHandler,
     ),

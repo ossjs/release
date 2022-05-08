@@ -3,8 +3,10 @@ import { Notes } from '../notes'
 import { commit } from '../../utils/git/commit'
 import { testEnvironment } from '../../../test/env'
 import { execAsync } from '../../utils/execAsync'
+import { GitHubRelease } from '../../utils/github/getGitHubRelease'
 
 const { setup, reset, cleanup, api, log } = testEnvironment('notes')
+
 let gitHubReleaseHandler: jest.Mock = jest.fn<
   ReturnType<ResponseResolver>,
   Parameters<ResponseResolver<MockedRequest, RestContext>>
@@ -38,7 +40,16 @@ afterAll(async () => {
   await cleanup()
 })
 
-it('creates a GitHub release for ???', async () => {
+it('creates a GitHub release for a past release', async () => {
+  api.use(
+    rest.get<never, never, GitHubRelease>(
+      'https://api.github.com/repos/:owner/:repo/releases/tags/:tag',
+      (req, res, ctx) => {
+        return res(ctx.status(404))
+      },
+    ),
+  )
+
   // Preceding (previous) release.
   await commit({
     message: `feat: long-ago published`,
@@ -117,4 +128,41 @@ it('creates a GitHub release for ???', async () => {
   // Must create a new GitHub release.
   expect(gitHubReleaseHandler).toHaveBeenCalledTimes(1)
   expect(log.info).toHaveBeenCalledWith('created GitHub release: /releases/1')
+})
+
+it('skips creating a GitHub release if the given release already exists', async () => {
+  api.use(
+    rest.get<never, never, GitHubRelease>(
+      'https://api.github.com/repos/:owner/:repo/releases/tags/:tag',
+      (req, res, ctx) => {
+        return res(
+          ctx.json({
+            html_url: '/releases/1',
+          }),
+        )
+      },
+    ),
+  )
+
+  const notes = new Notes(
+    {
+      script: 'exit 0',
+    },
+    {
+      _: ['', '1.0.0'],
+    },
+  )
+  await notes.run()
+
+  expect(log.warn).toHaveBeenCalledWith(
+    'found existing GitHub release for "v1.0.0": /releases/1',
+  )
+  expect(log.info).not.toHaveBeenCalledWith(
+    'creating GitHub release for version "v1.0.0" in "octocat/test"',
+  )
+  expect(log.info).not.toHaveBeenCalledWith(
+    expect.stringContaining('created GitHub release:'),
+  )
+
+  expect(process.exit).toHaveBeenCalledWith(1)
 })

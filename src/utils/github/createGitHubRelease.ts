@@ -1,20 +1,17 @@
-import { log } from '../../logger'
 import fetch from 'node-fetch'
 import { format } from 'outvariant'
-import type { ReleaseContext } from 'utils/createContext'
-
-export interface CreateReleaseResponse {
-  html_url: string
-}
+import type { ReleaseContext } from '../createContext'
+import type { GitHubRelease } from './getGitHubRelease'
+import { log } from '../../logger'
 
 /**
  * Create a new GitHub release with the given release notes.
  * @return {string} The URL of the newly created release.
  */
-export async function createRelease(
+export async function createGitHubRelease(
   context: ReleaseContext,
   notes: string,
-): Promise<string> {
+): Promise<GitHubRelease> {
   const { repo } = context
 
   log.info(
@@ -26,6 +23,7 @@ export async function createRelease(
     {
       method: 'POST',
       headers: {
+        Accept: 'application/json',
         Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
         'Content-Type': 'application/json',
       },
@@ -53,7 +51,5 @@ export async function createRelease(
     )
   }
 
-  const data = (await response.json()) as CreateReleaseResponse
-
-  return data.html_url
+  return response.json()
 }

@@ -376,7 +376,8 @@ export class Publish extends Command<Argv> {
       return '#'
     }
 
-    const releaseUrl = await Notes.createRelease(this.context, releaseNotes)
+    const release = await Notes.createRelease(this.context, releaseNotes)
+    const { html_url: releaseUrl } = release
     this.log.info(format('created release: %s', releaseUrl))
 
     return releaseUrl

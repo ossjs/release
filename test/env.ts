@@ -52,6 +52,7 @@ export function testEnvironment(testName: string): TestEnvironment {
     git,
     log,
     async setup() {
+      jest.spyOn(process, 'exit')
       jest.spyOn(log, 'info').mockImplementation()
       jest.spyOn(log, 'warn').mockImplementation()
       jest.spyOn(log, 'error').mockImplementation()
