@@ -64,15 +64,58 @@ The bottom line is: failed releases happen. The package registry may be down, yo
 - Release commit has the following format: `chore(release): v${version}`.
 - Does not generate or update the `CHANGELOG` file. This tool generates automatic release notes from your commits and creates a new GitHub release with those notes. Use GitHub releases instead of changelogs.
 
-## Install
+## Limitations
+
+- This tool does not support `!` (exclamation mark) as a commit message modifier indicating breaking changes. Please always include the `BREAKING CHANGE` indicator in the commit's body if you wish to indicate a breaking change.
+
+## Getting started
+
+### Install
 
 ```sh
 npm install @ossjs/release --save-dev
 ```
 
+### Create configuration
+
+Create a configuration file at the root of your repository:
+
+```sh
+touch ossjs.release.config.js
+```
+
+Open the newly created file and specify the `script` command that publishes your package:
+
+```js
+// ossjs.release.config.js
+module.exports = {
+  script: 'npm publish',
+}
+```
+
+### Generate GitHub access token
+
+Generate a [Personal Access Token](https://github.com/settings/tokens/new?scopes=repo,admin:repo_hook,admin:org_hook) for your GitHub user with the following permissions:
+
+- `repo`
+- `admin:repo_hook`
+- `admin:org_hook`
+
+Expose the generated access token in the `GITHUB_TOKEN` environmental variable in your local and/or CI environment. This tool uses the `GITHUB_TOKEN` variable to communicate with GitHub on your behalf: read and write releases, post comments on relevant issues, etc.
+
+### Create a release
+
+Commit and push your changes following the [Conventional Commit](https://www.conventionalcommits.org/) message structure. Once done, run the following command to generate the next release automatically:
+
+```sh
+release publish
+```
+
+Congratulations! :tada: You've successfully published your first release!
+
 ## Configuration
 
-Create a `ossjs.release.config.js` file on the root of your package.
+This tool expects a configuration file at `ossjs.release.config.js`. The configuration file must export an object of the following shape:
 
 ```ts
 {
@@ -110,6 +153,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          # Fetch the entire commit history to include all commits.
+          # By default, "actions/checkout" checks out the repository
+          # at the commit that's triggered the workflow. This means
+          # that the "@ossjs/release" may not be able to read older
+          # commits that may affect the next release version number.
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
