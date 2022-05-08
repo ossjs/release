@@ -110,18 +110,34 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          always-auth: true
+          registry-url: https://registry.npmjs.org
+
+      # Configure the Git user that'd author release commits.
+      - name: Setup Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
       - run: npm ci
       - run: npm test
+
       - run: npm run release
         with:
+          # Set the "GITHUB_TOKEN" environmental variable
+          # required by "@ossjs/release" to communicate with GitHub.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+          # Set the "NODE_AUTH_TOKEN" environmental variable
+          # that "actions/setup-node" uses as the "_authToken"
+          # in the generated ".npmrc" file to authenticate
+          # publishing to NPM registry.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
-
-Make sure to provide all environmental variables needed for publishing:
-
-- `GITHUB_TOKEN` (_required_). Used to create GitHub releases and comment on relevant issues.
-- `NPM_TOKEN`. Used in the example above since it publishes the package to NPM. You may provide a different variable depending on your `scripts.release` script in `ossjs.release.config.js`.
 
 ## API
 
