@@ -295,8 +295,6 @@ export class Publish extends Command<Argv> {
         }
       })
     })
-
-    this.log.info('created release commit!')
   }
 
   /**
