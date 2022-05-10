@@ -93,7 +93,7 @@ module.exports = {
 }
 ```
 
-### Generate GitHub access token
+### Generate GitHub Personal Access Token
 
 Generate a [Personal Access Token](https://github.com/settings/tokens/new?scopes=repo,admin:repo_hook,admin:org_hook) for your GitHub user with the following permissions:
 
@@ -127,7 +127,7 @@ This tool expects a configuration file at `ossjs.release.config.js`. The configu
 }
 ```
 
-## Usage in CI
+## Recipes
 
 This tool exposes a CLI which you can use with any continuous integration providers. No need to install actions, configure things, and pray for it to work.
 
@@ -141,6 +141,10 @@ This tool exposes a CLI which you can use with any continuous integration provid
 ```
 
 ### GitHub Actions
+
+Before you proceed, make sure you've [generated GitHub Personal Access Token](#generate-github-personal-access-token). Create a [new repository/organization secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets) called `CI_GITHUB_TOKEN` and use your Personal Access Token as the value for that secret.
+
+You will be using `secrets.CI_GITHUB_TOKEN` instead of the default `secrets.GITHUB_TOKEN` in the workflow file in order to have correct GitHub permissions during publishing. For example, your Personal Access Token will allow for Release to push release commits/tags to protected branches, while the default `secrets.GITHUB_TOKEN` will not.
 
 ```yml
 # .github/workflows/release.yml
@@ -161,8 +165,11 @@ jobs:
           # commits that may affect the next release version number.
           fetch-depth: 0
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+          # Provide your custom "CI_GITHUB_TOKEN" secret that holds
+          # your GitHub Personal Access Token.
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v3
         with:
           always-auth: true
           registry-url: https://registry.npmjs.org
@@ -170,8 +177,8 @@ jobs:
       # Configure the Git user that'd author release commits.
       - name: Setup Git
         run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git config --local user.email "actions@github.com"
 
       - run: npm ci
       - run: npm test
@@ -180,7 +187,7 @@ jobs:
         with:
           # Set the "GITHUB_TOKEN" environmental variable
           # required by "@ossjs/release" to communicate with GitHub.
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
           # Set the "NODE_AUTH_TOKEN" environmental variable
           # that "actions/setup-node" uses as the "_authToken"
