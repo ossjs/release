@@ -127,6 +127,76 @@ This tool expects a configuration file at `ossjs.release.config.js`. The configu
 }
 ```
 
+## API
+
+### `publish`
+
+Publishes a new version of the package.
+
+#### Options
+
+| Option name       | Type      | Description                                                                                                                                                                            |
+| ----------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--dry-run`, `-d` | `boolean` | Creates a release in a dry-run mode. **Note:** this still requires a valid `GITHUB_TOKEN` environmental variable, as the dry-run mode will perform read operations on your repository. |
+
+#### Example
+
+```sh
+release publish
+```
+
+### `notes`
+
+Generates release notes and creates a new GitHub release for the given release tag.
+
+This command is designed to recover from a partially failed release process, as well as to generate changelogs for old releases.
+
+- This command requires an existing (merged) release tag;
+- This command accepts past release tags;
+- This command has no effect if a GitHub release for the given tag already exists.
+
+#### Arguments
+
+| Argument name | Type     | Description              |
+| ------------- | -------- | ------------------------ |
+| `tag`         | `string` | Tag name of the release. |
+
+#### Example
+
+```sh
+# Generate release notes and create a GitHub release
+# for the release tag "v1.0.3".
+release notes v1.0.3
+```
+
+### `show`
+
+Displays information about a particular release.
+
+Release information includes the following:
+
+- Commit associated with the release tag;
+- Release status (public/draft/unpublished);
+- GitHub release URL if present.
+
+#### Arguments
+
+| Argument name | Type     | Description                                   |
+| ------------- | -------- | --------------------------------------------- |
+| `tag`         | `string` | (_Optional_) Tag name of the release to show. |
+
+#### Example
+
+```sh
+# Display info about the latest release.
+release show
+```
+
+```sh
+# Display info about a specific release.
+release show v0.19.2
+```
+
 ## Recipes
 
 This tool exposes a CLI which you can use with any continuous integration providers. No need to install actions, configure things, and pray for it to work.
@@ -196,74 +266,15 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
-## API
+### Usage with Yarn
 
-### `publish`
+Running `yarn publish` will prompt you for the next release version. Use the `--new-version` option and provide it with the `RELEASE_VERSION` environmental variable injected by Release that indicates the next release version based on your commit history.
 
-Publishes a new version of the package.
-
-#### Options
-
-| Option name       | Type      | Description                                                                                                                                                                            |
-| ----------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--dry-run`, `-d` | `boolean` | Creates a release in a dry-run mode. **Note:** this still requires a valid `GITHUB_TOKEN` environmental variable, as the dry-run mode will perform read operations on your repository. |
-
-#### Example
-
-```sh
-release publish
-```
-
-### `notes`
-
-Generates release notes and creates a new GitHub release for the given release tag.
-
-This command is designed to recover from a partially failed release process, as well as to generate changelogs for old releases.
-
-- This command requires an existing (merged) release tag;
-- This command accepts past release tags;
-- This command has no effect if a GitHub release for the given tag already exists.
-
-#### Arguments
-
-| Argument name | Type     | Description              |
-| ------------- | -------- | ------------------------ |
-| `tag`         | `string` | Tag name of the release. |
-
-#### Example
-
-```sh
-# Generate release notes and create a GitHub release
-# for the release tag "v1.0.3".
-release notes v1.0.3
-```
-
-### `show`
-
-Displays information about a particular release.
-
-Release information includes the following:
-
-- Commit associated with the release tag;
-- Release status (public/draft/unpublished);
-- GitHub release URL if present.
-
-#### Arguments
-
-| Argument name | Type     | Description                                   |
-| ------------- | -------- | --------------------------------------------- |
-| `tag`         | `string` | (_Optional_) Tag name of the release to show. |
-
-#### Example
-
-```sh
-# Display info about the latest release.
-release show
-```
-
-```sh
-# Display info about a specific release.
-release show v0.19.2
+```js
+// ossjs.release.config.js
+module.exports = {
+  script: 'yarn publish --new-version $RELEASE_VERSION',
+}
 ```
 
 ## Comparison
