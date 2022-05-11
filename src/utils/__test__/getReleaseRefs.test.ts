@@ -1,8 +1,10 @@
-import { rest } from 'msw'
-import { getReleaseRefs } from '../getReleaseRefs'
+import { rest, ResponseResolver, RestContext, RestRequest } from 'msw'
+import { getReleaseRefs, IssueOrPullRequest } from '../getReleaseRefs'
 import { parseCommits } from '../git/parseCommits'
 import { testEnvironment } from '../../../test/env'
 import { mockCommit } from '../../../test/fixtures'
+
+type IssueMap = Record<string, IssueOrPullRequest>
 
 const { setup, reset, cleanup, api } = testEnvironment('get-release-refs')
 
@@ -18,13 +20,31 @@ afterAll(async () => {
   await cleanup()
 })
 
+function issueById(
+  issues: IssueMap,
+): ResponseResolver<RestRequest<never, { id: string }>, RestContext> {
+  return (req, res, ctx) => {
+    const issue = issues[req.params.id]
+
+    if (!issue) {
+      return res(ctx.status(404))
+    }
+
+    return res(ctx.json(issue))
+  }
+}
+
 it('extracts references from commit messages', async () => {
-  const issues: Record<string, any> = {
+  const issues: IssueMap = {
     1: {
       html_url: '/issues/1',
+      pull_request: null,
+      body: '',
     },
     5: {
       html_url: '/issues/5',
+      pull_request: null,
+      body: '',
     },
     10: {
       html_url: '/issues/10',
@@ -41,9 +61,7 @@ This pull request references issues in its description.
   api.use(
     rest.get(
       'https://api.github.com/repos/:owner/:repo/issues/:id',
-      (req, res, ctx) => {
-        return res(ctx.json(issues[req.params.id as string]))
-      },
+      issueById(issues),
     ),
   )
 
@@ -67,7 +85,7 @@ This pull request references issues in its description.
 })
 
 it('handles references without body', async () => {
-  const issues: Record<string, any> = {
+  const issues: IssueMap = {
     15: {
       html_url: '/issues/15',
       pull_request: {},
@@ -81,13 +99,7 @@ it('handles references without body', async () => {
   api.use(
     rest.get(
       'https://api.github.com/repos/:owner/:repo/issues/:id',
-      (req, res, ctx) => {
-        const issue = issues[req.params.id as string]
-        if (!issue) {
-          return res(ctx.status(404))
-        }
-        return res(ctx.json(issue))
-      },
+      issueById(issues),
     ),
   )
 
