@@ -15,7 +15,11 @@ export async function createGitHubRelease(
   const { repo } = context
 
   log.info(
-    format('creating a new release at "%s/%s"...', repo.owner, repo.name),
+    format(
+      'creating a new GitHub release at "%s/%s"...',
+      repo.owner,
+      repo.name,
+    ),
   )
 
   const response = await fetch(
