@@ -20,15 +20,15 @@ afterAll(async () => {
 
 it('extracts references from commit messages', async () => {
   const issues: Record<string, any> = {
-    '1': {
+    1: {
       html_url: '/issues/1',
     },
-    '5': {
+    5: {
       html_url: '/issues/5',
     },
-    '10': {
+    10: {
       html_url: '/issues/10',
-      pull_request: [],
+      pull_request: {},
       body: `
 This pull request references issues in its description.
 
@@ -64,4 +64,38 @@ This pull request references issues in its description.
       '5',
     ]),
   )
+})
+
+it('handles references without body', async () => {
+  const issues: Record<string, any> = {
+    15: {
+      html_url: '/issues/15',
+      pull_request: {},
+      // Issues or pull requests may not have any body.
+      // That still subjects them to being included in the refs,
+      // they just can't be parsed for any child refs.
+      body: null,
+    },
+  }
+
+  api.use(
+    rest.get(
+      'https://api.github.com/repos/:owner/:repo/issues/:id',
+      (req, res, ctx) => {
+        const issue = issues[req.params.id as string]
+        if (!issue) {
+          return res(ctx.status(404))
+        }
+        return res(ctx.json(issue))
+      },
+    ),
+  )
+
+  const commits = await parseCommits([
+    mockCommit({ subject: 'fix: add license' }),
+    mockCommit({ subject: 'Make features better (#15)' }),
+  ])
+  const refs = await getReleaseRefs(commits)
+
+  expect(refs).toEqual(new Set(['15']))
 })

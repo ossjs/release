@@ -50,7 +50,7 @@ export async function getReleaseRefs(
   for (const issue of issuesFromCommits) {
     // Ignore regular issues as they may not close/fix other issues
     // by reference (at least on GitHub).
-    if (!issue.pull_request) {
+    if (!issue.pull_request || !issue.body) {
       continue
     }
 
@@ -63,8 +63,8 @@ export async function getReleaseRefs(
 
 export interface IssueOrPullRequest {
   html_url: string
-  pull_request: any
-  body: string
+  pull_request: Record<string, string> | null
+  body: string | null
 }
 
 async function fetchIssue(id: string): Promise<IssueOrPullRequest> {
