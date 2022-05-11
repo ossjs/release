@@ -49,7 +49,7 @@ it('throws an error given access token without the "repo" scope', async () => {
   )
 
   await expect(validateAccessToken('TOKEN')).rejects.toThrow(
-    `Provided "GITHUB_TOKEN" has insufficient permissions: missing the "repo" scope. Please generate a new GitHub personal access token from this URL: ${GITHUB_NEW_TOKEN_URL}`,
+    `Provided "GITHUB_TOKEN" environment variable has insufficient permissions: missing scopes "repo". Please generate a new GitHub personal access token from this URL: ${GITHUB_NEW_TOKEN_URL}`,
   )
 })
 
@@ -61,7 +61,7 @@ it('throws an error given access token without the "admin:repo_hook" scope', asy
   )
 
   await expect(validateAccessToken('TOKEN')).rejects.toThrow(
-    `Provided "GITHUB_TOKEN" has insufficient permissions: missing the "admin:repo_hook" scope. Please generate a new GitHub personal access token from this URL: ${GITHUB_NEW_TOKEN_URL}`,
+    `Provided "GITHUB_TOKEN" environment variable has insufficient permissions: missing scopes "admin:repo_hook". Please generate a new GitHub personal access token from this URL: ${GITHUB_NEW_TOKEN_URL}`,
   )
 })
 
@@ -73,6 +73,18 @@ it('throws an error given access token without the "admin:org_hook" scope', asyn
   )
 
   await expect(validateAccessToken('TOKEN')).rejects.toThrow(
-    `Provided "GITHUB_TOKEN" has insufficient permissions: missing the "admin:org_hook" scope. Please generate a new GitHub personal access token from this URL: ${GITHUB_NEW_TOKEN_URL}`,
+    `Provided "GITHUB_TOKEN" environment variable has insufficient permissions: missing scopes "admin:org_hook". Please generate a new GitHub personal access token from this URL: ${GITHUB_NEW_TOKEN_URL}`,
+  )
+})
+
+it('throws an error given access token with missing multiple scopes', async () => {
+  api.use(
+    rest.get('https://api.github.com', (req, res, ctx) => {
+      return res(ctx.set('x-oauth-scopes', 'admin:repo_hook'))
+    }),
+  )
+
+  await expect(validateAccessToken('TOKEN')).rejects.toThrow(
+    `Provided "GITHUB_TOKEN" environment variable has insufficient permissions: missing scopes "repo", "admin:org_hook". Please generate a new GitHub personal access token from this URL: ${GITHUB_NEW_TOKEN_URL}`,
   )
 })

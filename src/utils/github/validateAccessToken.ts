@@ -40,11 +40,15 @@ export async function validateAccessToken(accessToken: string): Promise<void> {
     'Failed to verify GitHub token permissions: GitHub API responded with an empty "X-OAuth-Scopes" header.',
   )
 
-  for (const scope of requiredGitHubTokenScopes) {
+  const missingScopes = requiredGitHubTokenScopes.filter((scope) => {
+    return !permissions.includes(scope)
+  })
+
+  if (missingScopes.length > 0) {
     invariant(
-      permissions.includes(scope),
-      'Provided "GITHUB_TOKEN" has insufficient permissions: missing the "%s" scope. Please generate a new GitHub personal access token from this URL: %s',
-      scope,
+      false,
+      'Provided "GITHUB_TOKEN" environment variable has insufficient permissions: missing scopes "%s". Please generate a new GitHub personal access token from this URL: %s',
+      missingScopes.join(`", "`),
       GITHUB_NEW_TOKEN_URL,
     )
   }
