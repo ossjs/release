@@ -277,6 +277,17 @@ module.exports = {
 }
 ```
 
+Yarn also doesn't seem to respect the `NODE_AUTH_TOKEN` environment variable. Please use the `NPM_AUTH_TOKEN` variable instead:
+
+```yaml
+- run: npm run release
+  with:
+    GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
+
+    # Use the "NPM_AUTH_TOKEN" instead of "NODE_AUTH_TOKEN".
+    NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+```
+
 ## Comparison
 
 Below you see how Release compares to other tools. Keep in mind that I'm only comparing how those tools work _by default_ because that's the only thing I care about. Unlike Release, other tools here can satisfy different use-cases through configuration, which is both a blessing and a curse.
