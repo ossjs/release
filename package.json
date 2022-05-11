@@ -1,6 +1,6 @@
 {
   "name": "@ossjs/release",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Minimalistic, opinionated, and predictable release automation tool.",
   "main": "./bin/build/index.js",
   "author": "Artem Zakharchenko <kettanaito@gmail.com>",
