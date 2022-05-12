@@ -115,7 +115,7 @@ it('creates a GitHub release for a past release', async () => {
 
   // Must generate correct release notes.
   expect(log.info).toHaveBeenCalledWith(`generated release notes:
-## v0.2.0 (07/04/2005)
+## v0.2.0 (2005-04-07)
 
 ### Features
 
