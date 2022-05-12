@@ -120,4 +120,80 @@ describe(toMarkdown, () => {
 - second bugfix (abc123)
 - first bugfix (def456)`)
   })
+
+  it('lists breaking changes in a separate section', async () => {
+    expect(
+      toMarkdown(
+        context,
+        await getReleaseNotes(
+          await parseCommits([
+            mockCommit({
+              hash: 'abc123',
+              subject: 'fix: regular fix',
+            }),
+            mockCommit({
+              hash: 'def456',
+              subject: 'feat: prepare functions',
+              body: 'BREAKING CHANGE: Please use X instead of Y from now on.',
+            }),
+          ]),
+        ),
+      ),
+    ).toEqual(`\
+## v0.1.0 (2022-04-20)
+
+### ⚠️ BREAKING CHANGES
+
+- prepare functions (def456)
+
+Please use X instead of Y from now on.
+
+### Bug Fixes
+
+- regular fix (abc123)`)
+
+    expect(
+      toMarkdown(
+        context,
+        await getReleaseNotes(
+          await parseCommits([
+            mockCommit({
+              hash: 'abc123',
+              subject: 'fix: regular fix',
+            }),
+            mockCommit({
+              hash: 'def456',
+              subject: 'feat: prepare functions (#123)',
+              body: 'BREAKING CHANGE: Please use X instead of Y from now on.',
+            }),
+            mockCommit({
+              hash: 'fgh789',
+              subject: 'fix(handler): correct things',
+              body: `\
+BREAKING CHANGE: Please notice this.
+
+BREAKING CHANGE: Also notice this.`,
+            }),
+          ]),
+        ),
+      ),
+    ).toEqual(`\
+## v0.1.0 (2022-04-20)
+
+### ⚠️ BREAKING CHANGES
+
+- prepare functions (#123) (def456)
+
+Please use X instead of Y from now on.
+
+- **handler:** correct things (fgh789)
+
+Please notice this.
+
+Also notice this.
+
+### Bug Fixes
+
+- regular fix (abc123)`)
+  })
 })

@@ -1,17 +1,17 @@
 import * as semver from 'semver'
 import { ParsedCommitWithHash } from './git/parseCommits'
 
+export function isBreakingChange(commit: ParsedCommitWithHash): boolean {
+  return commit.notes.some((note) => note.title === 'BREAKING CHANGE')
+}
+
 export function getNextReleaseType(
   commits: ParsedCommitWithHash[],
 ): semver.ReleaseType | null {
   const ranges: ['minor' | null, 'patch' | null] = [null, null]
 
   for (const commit of commits) {
-    const hasBreakingChangeNote = commit.notes.some(
-      (note) => note.title === 'BREAKING CHANGE',
-    )
-
-    if (hasBreakingChangeNote) {
+    if (isBreakingChange(commit)) {
       return 'major'
     }
 
