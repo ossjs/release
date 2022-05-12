@@ -1,4 +1,5 @@
 import type { ReleaseContext } from './createContext'
+import { formatDate } from './formatDate'
 import type { ParsedCommitWithHash } from './git/parseCommits'
 
 export type ReleaseNotes = Map<string, Set<ParsedCommitWithHash>>
@@ -33,15 +34,8 @@ export function toMarkdown(
   notes: ReleaseNotes,
 ): string {
   const markdown: string[] = []
+  const releaseDate = formatDate(context.nextRelease.publishedAt)
 
-  const releaseDate = context.nextRelease.publishedAt.toLocaleDateString(
-    'en-GB',
-    {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    },
-  )
   markdown.push(`## ${context.nextRelease.tag} (${releaseDate})`)
 
   const sections: Record<'feat' | 'fix', string[]> = {

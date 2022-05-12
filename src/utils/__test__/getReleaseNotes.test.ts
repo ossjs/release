@@ -108,7 +108,7 @@ describe(toMarkdown, () => {
     const markdown = toMarkdown(context, notes)
 
     expect(markdown).toEqual(`\
-## v0.1.0 (20/04/2022)
+## v0.1.0 (2022-04-20)
 
 ### Features
 
