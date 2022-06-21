@@ -23,16 +23,56 @@ export async function getCommitAuthors(
   const queue: Promise<void>[] = []
   const authors: Set<string> = new Set()
 
+  function addAuthor(login?: string): void {
+    if (!login) {
+      return
+    }
+    authors.add(login)
+  }
+
   for (const issueId of issueRefs) {
     const authorLoginPromise = new Promise<void>(async (resolve, reject) => {
-      const response = await fetch(
-        `https://api.github.com/repos/${repo.owner}/${repo.name}/issues/${issueId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
-          },
+      const response = await fetch(`https://api.github.com/graphql`, {
+        method: 'POST',
+        headers: {
+          Agent: 'ossjs/release',
+          Accept: 'application/json',
+          Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+          'Content-Type': 'application/json',
         },
-      )
+        body: JSON.stringify({
+          query: `
+            query GetCommitAuthors($owner: String!, $repo: String!, $pullRequestId: Int!) {
+              repository(owner: $owner name: $repo) {
+                pullRequest(number: $pullRequestId) {
+                  url
+                  author {
+                    login
+                  }
+                  commits(first: 100) {
+                    nodes {
+                      commit {
+                        authors(first: 100) {
+                          nodes {
+                            user {
+                              login
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            `,
+          variables: {
+            owner: repo.owner,
+            repo: repo.name,
+            pullRequestId: Number(issueId),
+          },
+        }),
+      })
 
       if (!response.ok) {
         return reject(
@@ -40,14 +80,22 @@ export async function getCommitAuthors(
         )
       }
 
-      const detail = await response.json()
+      const { data, errors } = await response.json()
 
-      // Skip issue references that are not pull requests.
-      if (!detail.pull_request || !detail.user?.login) {
-        return resolve()
+      if (errors) {
+        return reject(errors)
       }
 
-      authors.add(detail.user.login)
+      // Add pull request author.
+      addAuthor(data.repository.pullRequest.author.login)
+
+      // Add each commit author in the pull request.
+      for (const commit of data.repository.pullRequest.commits.nodes) {
+        for (const author of commit.commit.authors.nodes) {
+          addAuthor(author.user.login)
+        }
+      }
+
       resolve()
     })
 
