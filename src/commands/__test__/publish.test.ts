@@ -317,3 +317,38 @@ module.exports = {
     'release "v1.3.0" completed in dry-run mode!',
   )
 })
+
+it.only('streams the release script stdout/stderr to the main process', async () => {
+  jest.useFakeTimers('modern')
+  jest.spyOn(process.stdout, 'write')
+
+  await fs.create({
+    'package.json': JSON.stringify({
+      name: 'test',
+      version: '1.2.3',
+    }),
+    'stream.js': `
+setTimeout(() => console.log('hello'), 100)
+setTimeout(() => console.log('world'), 400)
+    `,
+  })
+  await execAsync(`git commit -m 'feat: stuff' --allow-empty`)
+
+  const publish = new Publish(
+    {
+      script: 'node stream.js',
+    },
+    {
+      _: [],
+    },
+  )
+
+  const releasePromise = publish.run()
+
+  console.log('promise pends', publish['releaseProcess'])
+
+  // Assert that the "stream.js" output is printed out as it goes.
+  console.log((process.stdout.write as any as jest.Mock).mock)
+
+  await releasePromise
+})
