@@ -140,7 +140,29 @@ it('returns an empty set for a commit without references', async () => {
   expect(authors).toEqual(new Set())
 })
 
-it('rejects when github responds with an error', async () => {
+it('forwards github graphql errors', async () => {
+  const errors = [{ message: 'one' }, { message: 'two' }]
+  api.use(
+    graphql.query('GetCommitAuthors', (req, res, ctx) => {
+      return res(ctx.errors(errors))
+    }),
+  )
+  const commits = await parseCommits([
+    mockCommit({
+      subject: 'feat: fail fetching of this commit (#5)',
+    }),
+  ])
+
+  await getCommitAuthors(commits[0])
+
+  expect(log.error).toHaveBeenCalledWith(
+    `Failed to extract the authors for the issue #5: GitHub API responded with 2 error(s): ${JSON.stringify(
+      errors,
+    )}`,
+  )
+})
+
+it('forwards github server errors', async () => {
   api.use(
     graphql.query('GetCommitAuthors', (req, res, ctx) => {
       return res(ctx.status(401))

@@ -83,7 +83,15 @@ export async function getCommitAuthors(
       const { data, errors } = await response.json()
 
       if (errors) {
-        return reject(errors)
+        return reject(
+          new Error(
+            format(
+              'GitHub API responded with %d error(s): %j',
+              errors.length,
+              errors,
+            ),
+          ),
+        )
       }
 
       // Add pull request author.
