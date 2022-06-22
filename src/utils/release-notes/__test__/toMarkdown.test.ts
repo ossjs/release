@@ -1,66 +1,12 @@
-import { getReleaseNotes, toMarkdown } from '../getReleaseNotes'
-import { mockCommit, mockRepo } from '../../../test/fixtures'
-import { createContext } from '../createContext'
-import { parseCommits } from '../git/parseCommits'
+import { mockCommit, mockRepo } from '../../../../test/fixtures'
+import { createContext } from '../../createContext'
+import { getReleaseNotes } from '../getReleaseNotes'
+import { parseCommits } from '../../git/parseCommits'
+import { toMarkdown, printAuthors } from '../toMarkdown'
 
-describe(getReleaseNotes, () => {
-  it('groups commits by commit type', async () => {
-    const commits = await parseCommits([
-      mockCommit({
-        subject: 'feat: support graphql',
-      }),
-      mockCommit({
-        subject: 'fix(ui): remove unsupported styles',
-      }),
-      mockCommit({
-        subject: 'chore: update dependencies',
-      }),
-    ])
-    const notes = await getReleaseNotes(commits)
-
-    expect(Array.from(notes.keys())).toEqual(['feat', 'fix'])
-
-    expect(Array.from(notes.get('feat')!)).toEqual([
-      expect.objectContaining({
-        type: 'feat',
-        scope: null,
-        header: 'feat: support graphql',
-      }),
-    ])
-    expect(Array.from(notes.get('fix')!)).toEqual([
-      expect.objectContaining({
-        type: 'fix',
-        scope: 'ui',
-        header: 'fix(ui): remove unsupported styles',
-      }),
-    ])
-  })
-
-  it('includes issues references', async () => {
-    const commits = await parseCommits([
-      mockCommit({
-        subject: 'feat(api): improves stuff (#1)',
-      }),
-    ])
-    const notes = await getReleaseNotes(commits)
-
-    expect(Array.from(notes.keys())).toEqual(['feat'])
-
-    expect(Array.from(notes.get('feat')!)).toEqual([
-      expect.objectContaining({
-        type: 'feat',
-        subject: 'improves stuff (#1)',
-        references: [
-          expect.objectContaining({
-            issue: '1',
-            prefix: '#',
-          }),
-        ],
-      }),
-    ])
-  })
-})
-
+/**
+ * toMarkdown.
+ */
 describe(toMarkdown, () => {
   const context = createContext({
     repo: mockRepo(),
@@ -84,7 +30,7 @@ describe(toMarkdown, () => {
     expect(markdown).toContain('- **api:** improves stuff (#1) (abc123)')
   })
 
-  it('retains strict order of release sections', async () => {
+  it('keeps a strict order of release sections', async () => {
     const commits = await parseCommits([
       mockCommit({
         hash: 'abc123',
@@ -195,5 +141,22 @@ Also notice this.
 ### Bug Fixes
 
 - regular fix (abc123)`)
+  })
+})
+
+/**
+ * printAuthors.
+ */
+describe(printAuthors, () => {
+  it('returns a single github handle', () => {
+    expect(printAuthors(new Set(['octocat']))).toBe('@octocat')
+  })
+
+  it('returns the joined list of multiple github handles', () => {
+    expect(printAuthors(new Set(['octocat', 'hubot']))).toBe('@octocat, @hubot')
+  })
+
+  it('returns undefinde given an empty authors set', () => {
+    expect(printAuthors(new Set())).toBeUndefined()
   })
 })

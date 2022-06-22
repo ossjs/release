@@ -4,6 +4,31 @@ import { getInfo } from '../../utils/git/getInfo'
 import { ParsedCommitWithHash } from '../git/parseCommits'
 import { log } from '../../logger'
 
+export interface GetCommitAuthorsQuery {
+  repository: {
+    pullRequest: {
+      url: string
+      author: { login: string }
+      commits: {
+        nodes: Array<{
+          commit: {
+            authors: {
+              nodes: Array<{
+                user: { login: string }
+              }>
+            }
+          }
+        }>
+      }
+    }
+  }
+}
+
+/**
+ * Get a list of GitHub usernames who have contributed
+ * to the given release commit. This analyzes all the commit
+ * authors in the pull request referenced by the given commit.
+ */
 export async function getCommitAuthors(
   commit: ParsedCommitWithHash,
 ): Promise<Set<string>> {
@@ -80,15 +105,16 @@ export async function getCommitAuthors(
         )
       }
 
-      const { data, errors } = await response.json()
+      const json = await response.json()
+      const data = json.data as GetCommitAuthorsQuery
 
-      if (errors) {
+      if (json.errors) {
         return reject(
           new Error(
             format(
               'GitHub API responded with %d error(s): %j',
-              errors.length,
-              errors,
+              json.errors.length,
+              json.errors,
             ),
           ),
         )
