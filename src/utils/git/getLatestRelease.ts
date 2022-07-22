@@ -12,7 +12,9 @@ export function byReleaseVersion(left: string, right: string): number {
 export async function getLatestRelease(
   tags: string[],
 ): Promise<TagPointer | undefined> {
-  const allTags = tags.filter(isValid).sort(byReleaseVersion)
+  const allTags = tags.filter((tag) => {
+    return sermver.isValid(tag)
+  }).sort(byReleaseVersion)
   const [latestTag] = allTags
 
   if (!latestTag) {
