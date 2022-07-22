@@ -312,7 +312,7 @@ export class Publish extends Command<Argv> {
 
     const tagResult = await until(async () => {
       const tag = await createTag(nextTag)
-      await execAsync('git push --tags')
+      await execAsync(`git push origin ${tag}`)
       return tag
     })
 
