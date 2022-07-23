@@ -21,6 +21,7 @@ import { createComment } from '../utils/github/createComment'
 import { createReleaseComment } from '../utils/createReleaseComment'
 import { demandGitHubToken } from '../utils/env'
 import { Notes } from './notes'
+import type { ChildProcess } from 'child_process'
 
 interface Argv {
   dryRun?: boolean
@@ -42,6 +43,7 @@ export class Publish extends Command<Argv> {
   }
 
   private context: ReleaseContext = null as any
+  private releaseProcess?: ChildProcess
 
   /**
    * The list of clean-up functions to invoke if release fails.
@@ -219,6 +221,8 @@ export class Publish extends Command<Argv> {
     this.log.info('executing publishing script...')
 
     const publishResult = await until(() => {
+      this.releaseProcess = null
+
       return execAsync(this.config.script, {
         env: {
           ...process.env,
