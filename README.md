@@ -254,7 +254,7 @@ jobs:
       - run: npm test
 
       - run: npm run release
-        with:
+        env:
           # Set the "GITHUB_TOKEN" environmental variable
           # required by "@ossjs/release" to communicate with GitHub.
           GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
@@ -281,7 +281,7 @@ Yarn also doesn't seem to respect the `NODE_AUTH_TOKEN` environment variable. Pl
 
 ```yaml
 - run: npm run release
-  with:
+  env:
     GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
     # Use the "NPM_AUTH_TOKEN" instead of "NODE_AUTH_TOKEN".
