@@ -1,37 +1,14 @@
-import type { ReleaseContext } from './createContext'
-import { formatDate } from './formatDate'
-import { isBreakingChange } from './getNextReleaseType'
-import type { ParsedCommitWithHash } from './git/parseCommits'
+import { ReleaseContext } from '../createContext'
+import { formatDate } from '../formatDate'
+import {
+  ReleaseNoteCommit,
+  ReleaseNotes,
+  ReleaseNoteType,
+} from './getReleaseNotes'
 
-export type ReleaseNoteType = 'breaking' | 'feat' | 'fix'
-export type ReleaseNotes = Map<ReleaseNoteType, Set<ParsedCommitWithHash>>
-
-const IGNORE_COMMIT_TYPE = ['chore']
-
-export async function getReleaseNotes(
-  commits: ParsedCommitWithHash[],
-): Promise<ReleaseNotes> {
-  const releaseNotes: ReleaseNotes = new Map()
-
-  for (const commit of commits) {
-    const { type, merge } = commit
-
-    if (!type || merge || IGNORE_COMMIT_TYPE.includes(type)) {
-      continue
-    }
-
-    const noteType: ReleaseNoteType = isBreakingChange(commit)
-      ? 'breaking'
-      : (type as ReleaseNoteType)
-
-    const nextCommits =
-      releaseNotes.get(noteType) || new Set<ParsedCommitWithHash>()
-    releaseNotes.set(noteType, nextCommits.add(commit))
-  }
-
-  return releaseNotes
-}
-
+/**
+ * Generate a Markdown string for the given release notes.
+ */
 export function toMarkdown(
   context: ReleaseContext,
   notes: ReleaseNotes,
@@ -82,8 +59,8 @@ export function toMarkdown(
 }
 
 function createReleaseItem(
-  commit: ParsedCommitWithHash,
-  includeNotes: boolean = false,
+  commit: ReleaseNoteCommit,
+  includeCommitNotes: boolean = false,
 ): string[] {
   const { subject, scope, hash } = commit
 
@@ -92,12 +69,18 @@ function createReleaseItem(
   }
 
   const commitLine: string[] = [
-    ['-', scope && `**${scope}:**`, subject, `(${hash})`]
+    [
+      '-',
+      scope && `**${scope}:**`,
+      subject,
+      `(${hash})`,
+      printAuthors(commit.authors),
+    ]
       .filter(Boolean)
       .join(' '),
   ]
 
-  if (includeNotes) {
+  if (includeCommitNotes) {
     const notes = commit.notes.reduce<string[]>((all, note) => {
       return all.concat('', note.text)
     }, [])
@@ -109,4 +92,14 @@ function createReleaseItem(
   }
 
   return commitLine
+}
+
+export function printAuthors(authors: Set<string>): string | undefined {
+  if (authors.size === 0) {
+    return undefined
+  }
+
+  return Array.from(authors)
+    .map((login) => `@${login}`)
+    .join(', ')
 }

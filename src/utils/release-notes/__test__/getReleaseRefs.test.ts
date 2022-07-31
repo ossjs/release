@@ -1,8 +1,8 @@
 import { rest, ResponseResolver, RestContext, RestRequest } from 'msw'
 import { getReleaseRefs, IssueOrPullRequest } from '../getReleaseRefs'
-import { parseCommits } from '../git/parseCommits'
-import { testEnvironment } from '../../../test/env'
-import { mockCommit } from '../../../test/fixtures'
+import { parseCommits } from '../../git/parseCommits'
+import { testEnvironment } from '../../../../test/env'
+import { mockCommit } from '../../../../test/fixtures'
 
 type IssueMap = Record<string, IssueOrPullRequest>
 

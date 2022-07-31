@@ -1,7 +1,7 @@
 import fetch from 'node-fetch'
 import createIssueParser from 'issue-parser'
-import { getInfo, GitInfo } from './git/getInfo'
-import type { ParsedCommitWithHash } from './git/parseCommits'
+import { getInfo, GitInfo } from '../git/getInfo'
+import type { ParsedCommitWithHash } from '../git/parseCommits'
 
 const parser = createIssueParser('github')
 
