@@ -1,6 +1,11 @@
 import * as semver from 'semver'
 import { ParsedCommitWithHash } from './git/parseCommits'
 
+/**
+ * Determine if the given commit describes a breaking change.
+ * @note For now, this only analyzes the "BREAKING CHANGE" comment
+ * in the commit's body.
+ */
 export function isBreakingChange(commit: ParsedCommitWithHash): boolean {
   return commit.notes.some((note) => note.title === 'BREAKING CHANGE')
 }

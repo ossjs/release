@@ -1,66 +1,15 @@
-import { getReleaseNotes, toMarkdown } from '../getReleaseNotes'
-import { mockCommit, mockRepo } from '../../../test/fixtures'
-import { createContext } from '../createContext'
-import { parseCommits } from '../git/parseCommits'
+import { mockCommit, mockRepo } from '../../../../test/fixtures'
+import { createContext } from '../../createContext'
+import { getReleaseNotes } from '../getReleaseNotes'
+import { parseCommits } from '../../git/parseCommits'
+import { toMarkdown, printAuthors } from '../toMarkdown'
+import { api } from '../../../../test/env'
+import { graphql } from 'msw'
+import { GetCommitAuthorsQuery } from '../../github/getCommitAuthors'
 
-describe(getReleaseNotes, () => {
-  it('groups commits by commit type', async () => {
-    const commits = await parseCommits([
-      mockCommit({
-        subject: 'feat: support graphql',
-      }),
-      mockCommit({
-        subject: 'fix(ui): remove unsupported styles',
-      }),
-      mockCommit({
-        subject: 'chore: update dependencies',
-      }),
-    ])
-    const notes = await getReleaseNotes(commits)
-
-    expect(Array.from(notes.keys())).toEqual(['feat', 'fix'])
-
-    expect(Array.from(notes.get('feat')!)).toEqual([
-      expect.objectContaining({
-        type: 'feat',
-        scope: null,
-        header: 'feat: support graphql',
-      }),
-    ])
-    expect(Array.from(notes.get('fix')!)).toEqual([
-      expect.objectContaining({
-        type: 'fix',
-        scope: 'ui',
-        header: 'fix(ui): remove unsupported styles',
-      }),
-    ])
-  })
-
-  it('includes issues references', async () => {
-    const commits = await parseCommits([
-      mockCommit({
-        subject: 'feat(api): improves stuff (#1)',
-      }),
-    ])
-    const notes = await getReleaseNotes(commits)
-
-    expect(Array.from(notes.keys())).toEqual(['feat'])
-
-    expect(Array.from(notes.get('feat')!)).toEqual([
-      expect.objectContaining({
-        type: 'feat',
-        subject: 'improves stuff (#1)',
-        references: [
-          expect.objectContaining({
-            issue: '1',
-            prefix: '#',
-          }),
-        ],
-      }),
-    ])
-  })
-})
-
+/**
+ * toMarkdown.
+ */
 describe(toMarkdown, () => {
   const context = createContext({
     repo: mockRepo(),
@@ -72,6 +21,26 @@ describe(toMarkdown, () => {
   })
 
   it('includes both issue and commit reference', async () => {
+    api.use(
+      graphql.query<GetCommitAuthorsQuery, { pullRequestId: string }>(
+        'GetCommitAuthors',
+        (req, res, ctx) => {
+          req.variables.pullRequestId
+          return res(
+            ctx.data({
+              repository: {
+                pullRequest: {
+                  url: '#1',
+                  author: { login: 'octocat' },
+                  commits: { nodes: [] },
+                },
+              },
+            }),
+          )
+        },
+      ),
+    )
+
     const commits = await parseCommits([
       mockCommit({
         hash: 'abc123',
@@ -81,10 +50,12 @@ describe(toMarkdown, () => {
     const notes = await getReleaseNotes(commits)
     const markdown = toMarkdown(context, notes)
 
-    expect(markdown).toContain('- **api:** improves stuff (#1) (abc123)')
+    expect(markdown).toContain(
+      '- **api:** improves stuff (#1) (abc123) @octocat',
+    )
   })
 
-  it('retains strict order of release sections', async () => {
+  it('keeps a strict order of release sections', async () => {
     const commits = await parseCommits([
       mockCommit({
         hash: 'abc123',
@@ -152,6 +123,44 @@ Please use X instead of Y from now on.
 
 - regular fix (abc123)`)
 
+    const pullRequests: Record<
+      string,
+      GetCommitAuthorsQuery['repository']['pullRequest']
+    > = {
+      123: {
+        url: '#123',
+        author: { login: 'octocat' },
+        commits: { nodes: [] },
+      },
+      456: {
+        url: '#456',
+        author: { login: 'john.doe' },
+        commits: {
+          nodes: [
+            {
+              commit: { authors: { nodes: [{ user: { login: 'kate' } }] } },
+            },
+          ],
+        },
+      },
+    }
+
+    api.use(
+      graphql.query<GetCommitAuthorsQuery, { pullRequestId: string }>(
+        'GetCommitAuthors',
+        (req, res, ctx) => {
+          req.variables.pullRequestId
+          return res(
+            ctx.data({
+              repository: {
+                pullRequest: pullRequests[req.variables.pullRequestId],
+              },
+            }),
+          )
+        },
+      ),
+    )
+
     expect(
       toMarkdown(
         context,
@@ -168,7 +177,7 @@ Please use X instead of Y from now on.
             }),
             mockCommit({
               hash: 'fgh789',
-              subject: 'fix(handler): correct things',
+              subject: 'fix(handler): correct things (#456)',
               body: `\
 BREAKING CHANGE: Please notice this.
 
@@ -182,11 +191,11 @@ BREAKING CHANGE: Also notice this.`,
 
 ### ⚠️ BREAKING CHANGES
 
-- prepare functions (#123) (def456)
+- prepare functions (#123) (def456) @octocat
 
 Please use X instead of Y from now on.
 
-- **handler:** correct things (fgh789)
+- **handler:** correct things (#456) (fgh789) @john.doe @kate
 
 Please notice this.
 
@@ -195,5 +204,22 @@ Also notice this.
 ### Bug Fixes
 
 - regular fix (abc123)`)
+  })
+})
+
+/**
+ * printAuthors.
+ */
+describe(printAuthors, () => {
+  it('returns a single github handle', () => {
+    expect(printAuthors(new Set(['octocat']))).toBe('@octocat')
+  })
+
+  it('returns the joined list of multiple github handles', () => {
+    expect(printAuthors(new Set(['octocat', 'hubot']))).toBe('@octocat @hubot')
+  })
+
+  it('returns undefinde given an empty authors set', () => {
+    expect(printAuthors(new Set())).toBeUndefined()
   })
 })
