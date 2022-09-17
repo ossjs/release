@@ -266,6 +266,19 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
+Create the configuration file and specify the release script:
+
+```js
+// ossjs.release.config.js
+module.exports = {
+  // Note that NPM doesn't need the next release version.
+  // It will read the bumped version from "package.json".
+  script: 'npm publish',
+}
+```
+
+> If publishing a scoped package, use the `npm publish --access public` script instead.
+
 ### Usage with Yarn
 
 Running `yarn publish` will prompt you for the next release version. Use the `--new-version` option and provide it with the `RELEASE_VERSION` environmental variable injected by Release that indicates the next release version based on your commit history.
@@ -280,7 +293,7 @@ module.exports = {
 Yarn also doesn't seem to respect the `NODE_AUTH_TOKEN` environment variable. Please use the `NPM_AUTH_TOKEN` variable instead:
 
 ```yaml
-- run: npm run release
+- run: yarn release
   env:
     GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
