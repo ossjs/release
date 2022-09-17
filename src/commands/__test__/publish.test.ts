@@ -1,5 +1,5 @@
 import * as fileSystem from 'fs'
-import { ResponseResolver, rest } from 'msw'
+import { ResponseResolver, graphql, rest } from 'msw'
 import { log } from '../../logger'
 import { Publish } from '../publish'
 import type { GitHubRelease } from '../../utils/github/getGitHubRelease'
@@ -22,6 +22,9 @@ afterAll(async () => {
 
 it('publishes the next minor version', async () => {
   api.use(
+    graphql.query('GetCommitAuthors', (req, res, ctx) => {
+      return res(ctx.data({}))
+    }),
     rest.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
       (req, res, ctx) => {
@@ -63,7 +66,7 @@ module.exports = {
   )
 
   // Must notify about the next version.
-  expect(log.info).toHaveBeenCalledWith('next version: 0.0.0 -> 0.1.0')
+  expect(log.info).toHaveBeenCalledWith('release type "minor": 0.0.0 -> 0.1.0')
 
   // The release script is provided with the environmental variables.
   expect(log.info).toHaveBeenCalledWith('release script input: 0.1.0\n')
@@ -91,6 +94,9 @@ module.exports = {
 
 it('releases a new version after an existing version', async () => {
   api.use(
+    graphql.query('GetCommitAuthors', (req, res, ctx) => {
+      return res(ctx.data({}))
+    }),
     rest.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
       (req, res, ctx) => {
@@ -133,7 +139,7 @@ it('releases a new version after an existing version', async () => {
   )
 
   // Must notify about the next version.
-  expect(log.info).toHaveBeenCalledWith('next version: 1.2.3 -> 1.3.0')
+  expect(log.info).toHaveBeenCalledWith('release type "minor": 1.2.3 -> 1.3.0')
 
   // The release script is provided with the environmental variables.
   expect(log.info).toHaveBeenCalledWith('release script input: 1.3.0\n')
@@ -163,6 +169,20 @@ it('comments on relevant github issues', async () => {
   const commentsCreated = new Map<string, string>()
 
   api.use(
+    graphql.query('GetCommitAuthors', (req, res, ctx) => {
+      return res(
+        ctx.data({
+          repository: {
+            pullRequest: {
+              author: { login: 'octocat' },
+              commits: {
+                nodes: [],
+              },
+            },
+          },
+        }),
+      )
+    }),
     rest.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
       (req, res, ctx) => {
@@ -219,16 +239,24 @@ module.exports = {
 })
 
 it('supports dry-run mode', async () => {
-  const gitHubReleaseHandler = jest.fn<
+  const getReleaseContributorsResolver = jest.fn<
     ReturnType<ResponseResolver>,
     Parameters<ResponseResolver>
   >((req, res, ctx) => {
     return res(ctx.status(500))
   })
+  const createGitHubReleaseResolver = jest.fn<
+    ReturnType<ResponseResolver>,
+    Parameters<ResponseResolver>
+  >((req, res, ctx) => {
+    return res(ctx.status(500))
+  })
+
   api.use(
+    graphql.query('GetCommitAuthors', getReleaseContributorsResolver),
     rest.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
-      gitHubReleaseHandler,
+      createGitHubReleaseResolver,
     ),
     rest.get(
       'https://api.github.com/repos/octocat/test/issues/:id',
@@ -273,8 +301,7 @@ module.exports = {
   )
 
   // Package.json version bump.
-  expect(log.info).toHaveBeenCalledWith('next release type: minor')
-  expect(log.info).toHaveBeenCalledWith('next version: 1.2.3 -> 1.3.0')
+  expect(log.info).toHaveBeenCalledWith('release type "minor": 1.2.3 -> 1.3.0')
   expect(log.warn).toHaveBeenCalledWith(
     'skip version bump in package.json in dry-run mode (next: 1.3.0)',
   )
@@ -291,27 +318,34 @@ module.exports = {
     false,
   )
 
-  // Release commit.
+  // No release commit must be created.
   expect(log.warn).toHaveBeenCalledWith(
     'skip creating a release commit in dry-run mode: "chore(release): v1.3.0"',
   )
   expect(log.info).not.toHaveBeenCalledWith('created release commit!')
 
-  // Release tag.
+  // No release tag must be created.
   expect(log.warn).toHaveBeenCalledWith(
     'skip creating a release tag in dry-run mode: v1.3.0',
   )
   expect(log.info).not.toHaveBeenCalledWith('created release tag "v1.3.0"!')
   expect(await execAsync('git tag')).toBe('v1.2.3\n')
 
-  // Release notes.
+  // Release notes must still be generated.
   expect(log.info).toHaveBeenCalledWith(
     expect.stringContaining('generated release notes:\n\n## v1.3.0'),
   )
+
+  expect(createGitHubReleaseResolver).not.toHaveBeenCalled()
+
+  // The actual GitHub release must not be created.
   expect(log.warn).toHaveBeenCalledWith(
     'skip creating a GitHub release in dry-run mode',
   )
-  expect(gitHubReleaseHandler).not.toHaveBeenCalled()
+
+  // Dry mode still gets all release contributors because
+  // it a read action.
+  expect(getReleaseContributorsResolver).toHaveBeenCalledTimes(1)
 
   expect(log.warn).toHaveBeenCalledWith(
     'release "v1.3.0" completed in dry-run mode!',

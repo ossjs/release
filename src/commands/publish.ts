@@ -15,7 +15,7 @@ import { execAsync } from '../utils/execAsync'
 import { commit } from '../utils/git/commit'
 import { createTag } from '../utils/git/createTag'
 import { push } from '../utils/git/push'
-import { getReleaseRefs } from '../utils/getReleaseRefs'
+import { getReleaseRefs } from '../utils/release-notes/getReleaseRefs'
 import { parseCommits, ParsedCommitWithHash } from '../utils/git/parseCommits'
 import { createComment } from '../utils/github/createComment'
 import { createReleaseComment } from '../utils/createReleaseComment'
@@ -101,7 +101,7 @@ export class Publish extends Command<Argv> {
     )
 
     const commits = await parseCommits(rawCommits)
-    this.log.info('successfully parsed commits: %d', commits.length)
+    this.log.info('successfully parsed %d commit(s)!', commits.length)
 
     if (commits.length === 0) {
       this.log.warn('no commits since the latest release, skipping...')
@@ -114,8 +114,6 @@ export class Publish extends Command<Argv> {
       this.log.warn('committed changes do not bump version, skipping...')
       return
     }
-
-    this.log.info(format('next release type: %s', nextReleaseType))
 
     const prevVersion = latestRelease?.tag || 'v0.0.0'
     const nextVersion = getNextVersion(prevVersion, nextReleaseType)
@@ -131,7 +129,8 @@ export class Publish extends Command<Argv> {
 
     this.log.info(
       format(
-        'next version: %s -> %s',
+        'release type "%s": %s -> %s',
+        nextReleaseType,
         prevVersion.replace(/^v/, ''),
         this.context.nextRelease.version,
       ),
