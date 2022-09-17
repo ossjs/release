@@ -101,5 +101,5 @@ export function printAuthors(authors: Set<string>): string | undefined {
 
   return Array.from(authors)
     .map((login) => `@${login}`)
-    .join(', ')
+    .join(' ')
 }

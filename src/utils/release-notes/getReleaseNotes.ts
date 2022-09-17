@@ -54,35 +54,28 @@ export async function injectReleaseContributors(
   groups: GroupedCommits,
 ): Promise<ReleaseNotes> {
   const notes: ReleaseNotes = new Map()
-  const queue: Promise<void>[] = []
 
   for (const [releaseType, commits] of groups) {
     notes.set(releaseType, new Set())
 
     for (const commit of commits) {
-      queue.push(
-        new Promise(async (resolve, reject) => {
-          const authors = await getCommitAuthors(commit).catch(reject)
+      // Don't parallelize this because then the original
+      // order of commits may be lost.
+      const authors = await getCommitAuthors(commit)
 
-          if (authors) {
-            const releaseCommit = Object.assign<
-              {},
-              ParsedCommitWithHash,
-              Pick<ReleaseNoteCommit, 'authors'>
-            >({}, commit, {
-              authors,
-            })
+      if (authors) {
+        const releaseCommit = Object.assign<
+          {},
+          ParsedCommitWithHash,
+          Pick<ReleaseNoteCommit, 'authors'>
+        >({}, commit, {
+          authors,
+        })
 
-            notes.get(releaseType)?.add(releaseCommit)
-          }
-
-          return resolve()
-        }),
-      )
+        notes.get(releaseType)?.add(releaseCommit)
+      }
     }
   }
-
-  await Promise.allSettled(queue)
 
   return notes
 }
