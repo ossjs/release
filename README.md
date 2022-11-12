@@ -301,6 +301,17 @@ Yarn also doesn't seem to respect the `NODE_AUTH_TOKEN` environment variable. Pl
     NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
+### Usage with PNPM
+
+```js
+// ossjs.release.config.js
+module.exports = {
+  // Prevent PNPM from checking for a clean Git state
+  // to ignore the intermediate release state of the repository.
+  script: 'pnpm publish --no-git-checks',
+}
+```
+
 ## Comparison
 
 Below you see how Release compares to other tools. Keep in mind that I'm only comparing how those tools work _by default_ because that's the only thing I care about. Unlike Release, other tools here can satisfy different use-cases through configuration, which is both a blessing and a curse.
