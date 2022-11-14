@@ -1,68 +1,51 @@
-import { ExecOptions, exec, spawn } from 'node:child_process'
+import { DeferredPromise } from '@open-draft/deferred-promise'
+import { type ExecOptions, exec } from 'child_process'
 
 export type ExecAsyncFn = {
-  (command: string, options?: ExecOptions): Promise<string>
+  (
+    command: string,
+    options?: ExecOptions,
+  ): DeferredPromise<ExecAsyncPromisePayload>
   mockContext(options: ExecOptions): void
   restoreContext(): void
   contextOptions: ExecOptions
+}
+
+export interface ExecAsyncPromisePayload {
+  stdout: string
+  stderr: string
 }
 
 const DEFAULT_CONTEXT: Partial<ExecOptions> = {
   cwd: process.cwd(),
 }
 
-export const spawnAsync = (command: string, options = {}) => {
-  const [binary, ...args] = command.split(' ')
-
-  const io = spawn(binary, args, {
-    ...execAsync.contextOptions,
-    ...options,
-    stdio: 'pipe',
-  })
-
-  let stdout = ''
-  io.stdout.on('data', (chunk) => (stdout += chunk))
-
-  let stderr = ''
-  io.stderr.on('data', (chunk) => (stderr += chunk))
-
-  return new Promise<{
+export const execAsync = <ExecAsyncFn>((command, options = {}) => {
+  const donePromise = new DeferredPromise<{
     stdout: string
     stderr: string
-  }>((resolve, reject) => {
-    io.on('error', (error) => reject(error))
-    io.on('exit', (code) => {
-      if (code === 0) {
-        return resolve({
-          stdout,
-          stderr,
-        })
+  }>()
+
+  exec(
+    command,
+    {
+      ...execAsync.contextOptions,
+      ...options,
+    },
+    (error, stdout, stderr) => {
+      if (error) {
+        donePromise.reject(error)
+        return
       }
 
-      reject(new Error(`Process exited with code ${code}`))
-    })
-  })
-}
+      donePromise.resolve({
+        stdout,
+        stderr,
+      })
+    },
+  )
 
-//
-
-export const execAsync = <ExecAsyncFn>((command, options = {}) => {
-  return new Promise((resolve, reject) => {
-    exec(
-      command,
-      {
-        ...execAsync.contextOptions,
-        ...options,
-      },
-      (error, stdout) => {
-        if (error) {
-          return reject(error)
-        }
-
-        resolve(stdout)
-      },
-    )
-  })
+  return donePromise
 })
 
 execAsync.mockContext = (options) => {

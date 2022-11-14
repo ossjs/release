@@ -22,6 +22,6 @@ export async function getTag(tag: string): Promise<TagPointer | undefined> {
 
   return {
     tag,
-    hash: commitHashOut.data.trim(),
+    hash: commitHashOut.data.stdout.trim(),
   }
 }

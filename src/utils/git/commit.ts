@@ -27,7 +27,9 @@ export async function commit({
   ]
 
   await execAsync(`git commit ${args.join(' ')}`)
-  const hash = await execAsync('git log --pretty=format:%H -n 1')
+  const hash = await execAsync('git log --pretty=format:%H -n 1').then(
+    ({ stdout }) => stdout,
+  )
   const commit = (await getCommit(hash)) as Commit
 
   const [commitInfo] = await parseCommits([commit])

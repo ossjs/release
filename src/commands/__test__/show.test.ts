@@ -1,12 +1,15 @@
 import { rest } from 'msw'
 import { ReleaseStatus, Show } from '../../commands/show'
+import { log } from '../../logger'
 import { execAsync } from '../../utils/execAsync'
 import { getTag } from '../../utils/git/getTag'
 import { testEnvironment } from '../../../test/env'
 import { mockConfig } from '../../../test/fixtures'
 import { commit } from '../../utils/git/commit'
 
-const { setup, reset, cleanup, api, log } = testEnvironment('show')
+const { setup, reset, cleanup, api, createRepository } = testEnvironment({
+  fileSystemPath: 'show',
+})
 
 beforeAll(async () => {
   await setup()
@@ -21,6 +24,7 @@ afterAll(async () => {
 })
 
 it('exits given repository without any releases', async () => {
+  await createRepository('repo-without-releases')
   const show = new Show(mockConfig(), { _: [''] })
 
   await expect(show.run()).rejects.toThrow(
@@ -29,6 +33,8 @@ it('exits given repository without any releases', async () => {
 })
 
 it('exits given a non-existing release', async () => {
+  await createRepository('repo-with-release')
+
   await execAsync('git commit -m "chore: release v1.0.0" --allow-empty')
   await execAsync(`git tag v1.0.0`)
   const show = new Show(mockConfig(), { _: ['', 'v1.2.3'] })
@@ -39,6 +45,8 @@ it('exits given a non-existing release', async () => {
 })
 
 it('displays info for explicit unpublished release', async () => {
+  await createRepository('repo-with-unpublished-release')
+
   api.use(
     rest.get(
       'https://api.github.com/repos/:owner/:repo/releases/tags/v1.0.0',
@@ -68,6 +76,8 @@ it('displays info for explicit unpublished release', async () => {
 })
 
 it('displays info for explicit draft release', async () => {
+  await createRepository('repo-with-draft-release')
+
   api.use(
     rest.get(
       'https://api.github.com/repos/:owner/:repo/releases/tags/v1.0.0',
@@ -100,6 +110,8 @@ it('displays info for explicit draft release', async () => {
 })
 
 it('displays info for explicit public release', async () => {
+  await createRepository('repo-with-public-release')
+
   api.use(
     rest.get(
       'https://api.github.com/repos/:owner/:repo/releases/tags/v1.0.0',
@@ -131,6 +143,8 @@ it('displays info for explicit public release', async () => {
 })
 
 it('displays info for implicit unpublished release', async () => {
+  await createRepository('repo-with-implicit-unpublished-release')
+
   api.use(
     rest.get(
       'https://api.github.com/repos/:owner/:repo/releases/tags/v1.2.3',
@@ -162,6 +176,8 @@ it('displays info for implicit unpublished release', async () => {
 })
 
 it('displays info for explicit draft release', async () => {
+  await createRepository('repo-with-explicit-draft-release')
+
   api.use(
     rest.get(
       'https://api.github.com/repos/:owner/:repo/releases/tags/v1.2.3',
@@ -196,6 +212,8 @@ it('displays info for explicit draft release', async () => {
 })
 
 it('displays info for explicit public release', async () => {
+  await createRepository('repo-with-explicit-public-release')
+
   api.use(
     rest.get(
       'https://api.github.com/repos/:owner/:repo/releases/tags/v1.2.3',

@@ -68,9 +68,9 @@ describe(groupCommitsByReleaseType, () => {
 })
 
 describe(injectReleaseContributors, () => {
-  const { setup, reset, cleanup, api } = testEnvironment(
-    'injectReleaseContributors',
-  )
+  const { setup, reset, cleanup, api, createRepository } = testEnvironment({
+    fileSystemPath: 'injectReleaseContributors',
+  })
 
   beforeAll(async () => {
     await setup()
@@ -85,6 +85,8 @@ describe(injectReleaseContributors, () => {
   })
 
   it('injects contributors handles alongside related commits', async () => {
+    await createRepository('inject-contributor-handles')
+
     const pullRequests: Record<
       string,
       GetCommitAuthorsQuery['repository']['pullRequest']

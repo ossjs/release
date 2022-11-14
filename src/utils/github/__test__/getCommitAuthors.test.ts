@@ -1,11 +1,13 @@
 import { getCommitAuthors } from '../getCommitAuthors'
-import { mockCommit, mockRepo } from '../../../../test/fixtures'
+import { log } from '../../../logger'
+import { mockCommit } from '../../../../test/fixtures'
 import { parseCommits } from '../../git/parseCommits'
 import { testEnvironment } from '../../../../test/env'
-import { graphql, rest } from 'msw'
+import { graphql } from 'msw'
 
-const { setup, reset, cleanup, api, log } =
-  testEnvironment('get-commit-authors')
+const { setup, reset, cleanup, api } = testEnvironment({
+  fileSystemPath: 'get-commit-authors',
+})
 
 beforeAll(async () => {
   await setup()

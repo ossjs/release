@@ -6,7 +6,9 @@ import { mockCommit } from '../../../../test/fixtures'
 
 type IssueMap = Record<string, IssueOrPullRequest>
 
-const { setup, reset, cleanup, api } = testEnvironment('get-release-refs')
+const { setup, reset, cleanup, api, createRepository } = testEnvironment({
+  fileSystemPath: 'get-release-refs',
+})
 
 beforeAll(async () => {
   await setup()
@@ -35,6 +37,8 @@ function issueById(
 }
 
 it('extracts references from commit messages', async () => {
+  await createRepository('from-commit-message')
+
   const issues: IssueMap = {
     1: {
       html_url: '/issues/1',
@@ -85,6 +89,8 @@ This pull request references issues in its description.
 })
 
 it('handles references without body', async () => {
+  await createRepository('ref-without-body')
+
   const issues: IssueMap = {
     15: {
       html_url: '/issues/15',
