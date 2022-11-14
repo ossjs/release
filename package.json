@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "start": "npm run build -- -w",
-    "build": "tsc -c tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json",
     "test": "jest --runInBand",
     "prerelease": "npm run build && npm test",
     "release": "./bin/cli.sh publish"
