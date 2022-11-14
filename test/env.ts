@@ -79,6 +79,7 @@ export function testEnvironment(
     },
     async cleanup() {
       jest.restoreAllMocks()
+      await resolveSideEffects()
       await fs.cleanup()
     },
     async createRepository(rootDir) {

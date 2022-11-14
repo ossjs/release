@@ -10,7 +10,7 @@ beforeAll(async () => {
   await setup()
 })
 
-beforeEach(async () => {
+afterEach(async () => {
   await reset()
 })
 
