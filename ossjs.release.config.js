@@ -1,3 +1,3 @@
 module.exports = {
-  script: 'npm publish',
+  script: 'pnpm publish --no-git-checks',
 }

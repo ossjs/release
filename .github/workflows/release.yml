@@ -28,10 +28,10 @@ jobs:
           git config --local user.email "actions@github.com"
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install
 
       - name: Release
-        run: npm run release
+        run: pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
