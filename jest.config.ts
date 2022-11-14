@@ -1,8 +1,10 @@
 import type { Config } from 'jest'
 
 const config: Config = {
-  preset: 'ts-jest',
   roots: ['./src'],
+  transform: {
+    '^.+\\.ts$': '@swc/jest',
+  },
   setupFilesAfterEnv: ['./jest.setup.ts'],
 }
 
