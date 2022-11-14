@@ -22,6 +22,10 @@ jobs:
           always-auth: true
           registry-url: https://registry.npmjs.org
 
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7.12
+
       - name: Setup Git
         run: |
           git config --local user.name "GitHub Actions"
