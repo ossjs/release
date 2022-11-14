@@ -368,8 +368,8 @@ module.exports = {
   )
 })
 
-it('streams the release script stdout/stderr to the main process', async () => {
-  const repo = await createRepository('stream')
+it('streams the release script stdout to the main process', async () => {
+  const repo = await createRepository('stream-stdout')
 
   api.use(
     graphql.query('GetCommitAuthors', (req, res, ctx) => {
@@ -392,19 +392,19 @@ it('streams the release script stdout/stderr to the main process', async () => {
     'package.json': JSON.stringify({
       name: 'publish-stream',
     }),
-    'stream.js': `
+    'stream-stdout.js': `
 console.log('hello')
 setTimeout(() => console.log('world'), 100)
 setTimeout(() => process.exit(0), 150)
       `,
   })
   await execAsync(
-    `git commit -m 'feat: stream release script std' --allow-empty`,
+    `git commit -m 'feat: stream release script stdout' --allow-empty`,
   )
 
   const publish = new Publish(
     {
-      script: 'node stream.js',
+      script: 'node stream-stdout.js',
     },
     {
       _: [],
@@ -416,6 +416,61 @@ setTimeout(() => process.exit(0), 150)
   // Must log the release script stdout.
   expect(log.info).toHaveBeenCalledWith(
     'publishing script done, see the process output below:\n\n--- stdout ---\nhello\nworld\n\n',
+  )
+
+  // Must report a successful release.
+  expect(log.info).toHaveBeenCalledWith('release type "minor": 0.0.0 -> 0.1.0')
+  expect(log.info).toHaveBeenCalledWith('release "v0.1.0" completed!')
+})
+
+it('streams the release script stderr to the main process', async () => {
+  const repo = await createRepository('stream-stderr')
+
+  api.use(
+    graphql.query('GetCommitAuthors', (req, res, ctx) => {
+      return res(ctx.data({}))
+    }),
+    rest.post<never, never, GitHubRelease>(
+      'https://api.github.com/repos/:owner/:repo/releases',
+      (req, res, ctx) => {
+        return res(
+          ctx.status(201),
+          ctx.json({
+            html_url: '/releases/1',
+          }),
+        )
+      },
+    ),
+  )
+
+  await repo.fs.create({
+    'package.json': JSON.stringify({
+      name: 'publish-stream',
+    }),
+    'stream-stderr.js': `
+console.error('something')
+setTimeout(() => console.error('went wrong'), 100)
+setTimeout(() => process.exit(0), 150)
+      `,
+  })
+  await execAsync(
+    `git commit -m 'feat: stream release script stderr' --allow-empty`,
+  )
+
+  const publish = new Publish(
+    {
+      script: 'node stream-stderr.js',
+    },
+    {
+      _: [],
+    },
+  )
+
+  await publish.run()
+
+  // Must log the release script stdout.
+  expect(log.info).toHaveBeenCalledWith(
+    'publishing script done, see the process output below:\n\n--- stderr ---\nsomething\nwent wrong\n\n',
   )
 
   // Must report a successful release.
