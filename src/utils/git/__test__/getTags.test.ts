@@ -1,51 +1,38 @@
-import { createTeardown } from 'fs-teardown'
-import { Git } from 'node-git-server'
-import { createOrigin, initGit, startGitProvider } from '../../../../test/utils'
+import { testEnvironment } from '../../../../test/env'
 import { execAsync } from '../../execAsync'
 import { getTags } from '../getTags'
 
-const origin = createOrigin()
-const fsMock = createTeardown({
-  rootDir: 'tarm/get-tags',
+const { setup, reset, cleanup, createRepository } = testEnvironment({
+  fileSystemPath: 'get-tags',
 })
-
-const gitProvider = new Git(fsMock.resolve('git-provider'), {
-  autoCreate: true,
-})
-
-gitProvider.on('push', (push) => push.accept())
-gitProvider.on('fetch', (fetch) => fetch.accept())
 
 beforeAll(async () => {
-  await fsMock.prepare()
-  await startGitProvider(gitProvider, await origin.get())
-  execAsync.mockContext({
-    cwd: fsMock.resolve(),
-  })
+  await setup()
 })
 
-beforeEach(async () => {
-  await fsMock.reset()
-  await initGit(fsMock, origin.url)
+afterEach(async () => {
+  await reset()
 })
 
 afterAll(async () => {
-  await fsMock.cleanup()
-  await gitProvider.close()
-  execAsync.restoreContext()
+  await cleanup()
 })
 
 it('returns empty array when there are no tags', async () => {
+  await createRepository('no-tags')
   expect(await getTags()).toEqual([])
 })
 
 it('returns a single existing tag', async () => {
+  await createRepository('single-tag')
   await execAsync('git tag 1.2.3')
 
   expect(await getTags()).toEqual(['1.2.3'])
 })
 
 it('returns mutliple existing tags', async () => {
+  await createRepository('multiple-tags')
+
   await execAsync('git tag 1.0.0')
   await execAsync('git tag 1.0.5')
   await execAsync('git tag 2.3.1')

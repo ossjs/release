@@ -46,9 +46,9 @@ export class Publish extends Command<Argv> {
   /**
    * The list of clean-up functions to invoke if release fails.
    */
-  private revertQueue: RevertAction[] = []
+  private revertQueue: Array<RevertAction> = []
 
-  public run = async () => {
+  public run = async (): Promise<void> => {
     await demandGitHubToken().catch((error) => {
       this.log.error(error.message)
       process.exit(1)
@@ -57,8 +57,14 @@ export class Publish extends Command<Argv> {
     this.revertQueue = []
 
     // Extract repository information (remote/owner/name).
-    const repo = await getInfo()
-    const branchName = await getCurrentBranch()
+    const repo = await getInfo().catch((error) => {
+      console.error(error)
+      throw new Error('Failed to get Git repository information')
+    })
+    const branchName = await getCurrentBranch().catch((error) => {
+      console.error(error)
+      throw new Error('Failed to get the current branch name')
+    })
 
     this.log.info(
       format(
@@ -217,13 +223,24 @@ export class Publish extends Command<Argv> {
 
     this.log.info('executing publishing script...')
 
-    const publishResult = await until(() => {
-      return execAsync(this.config.script, {
+    const publishResult = await until(async () => {
+      const releaseScriptStd = await execAsync(this.config.script, {
         env: {
           ...process.env,
           ...env,
         },
       })
+
+      this.log.info(`publishing script done, see the process output below:
+
+${[
+  ['--- stdout ---', releaseScriptStd.stdout],
+  ['--- stderr ---', releaseScriptStd.stderr],
+]
+  .filter(([, data]) => !!data)
+  .map(([header, data]) => `${header}\n${data}`)
+  .join('\n\n')}
+`)
     })
 
     invariant(
@@ -232,7 +249,6 @@ export class Publish extends Command<Argv> {
       publishResult.error?.message,
     )
 
-    this.log.info(publishResult.data)
     this.log.info('published successfully!')
   }
 

@@ -1,7 +1,10 @@
 import { execAsync } from '../execAsync'
 
 it('resolves with stdout of the executed command', async () => {
-  expect(await execAsync('echo "hello world"')).toBe('hello world\n')
+  expect(await execAsync('echo "hello world"')).toEqual({
+    stdout: 'hello world\n',
+    stderr: '',
+  })
 })
 
 it('rejects if the command exits', async () => {
@@ -15,11 +18,14 @@ it('rejects if the command fails', async () => {
 })
 
 it('propagates environmental variables', async () => {
-  const data = await execAsync(`echo "hello $OBJECT"`, {
+  const std = await execAsync(`echo "hello $OBJECT"`, {
     env: {
       OBJECT: 'world',
     },
   })
 
-  expect(data).toBe('hello world\n')
+  expect(std).toEqual({
+    stdout: 'hello world\n',
+    stderr: '',
+  })
 })

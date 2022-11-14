@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "module": "CommonJS",
+    "target": "ESNext",
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "outDir": "./bin/build",
+    "baseUrl": "./src"
+  },
+  "include": ["./typings", "./src/**/*.ts"],
+  "exclude": ["node_modules", "**/*.test.ts"]
+}

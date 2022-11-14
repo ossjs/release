@@ -2,7 +2,9 @@ import { getCommits } from '../getCommits'
 import { testEnvironment } from '../../../../test/env'
 import { execAsync } from '../../execAsync'
 
-const { setup, reset, cleanup } = testEnvironment('get-commits')
+const { setup, reset, cleanup, createRepository } = testEnvironment({
+  fileSystemPath: 'get-commits',
+})
 
 beforeAll(async () => {
   await setup()
@@ -17,11 +19,17 @@ afterAll(async () => {
 })
 
 it('returns commits since the given commit', async () => {
+  await createRepository('new-commits-since-latest')
+
   await execAsync(`git commit -m 'one' --allow-empty`)
   await execAsync(`git commit -m 'two' --allow-empty`)
-  const secondCommitHash = await execAsync(`git log --pretty=format:'%H' -n 1`)
+  const secondCommitHash = await execAsync(
+    `git log --pretty=format:'%H' -n 1`,
+  ).then(({ stdout }) => stdout)
   await execAsync(`git commit -m 'three' --allow-empty`)
-  const thirdCommitHash = await execAsync(`git log --pretty=format:'%H' -n 1`)
+  const thirdCommitHash = await execAsync(
+    `git log --pretty=format:'%H' -n 1`,
+  ).then(({ stdout }) => stdout)
 
   expect(await getCommits({ since: secondCommitHash.trim() })).toEqual([
     expect.objectContaining({
@@ -32,10 +40,16 @@ it('returns commits since the given commit', async () => {
 })
 
 it('returns commits until the given commit', async () => {
+  await createRepository('commits-until-given')
+
   await execAsync(`git commit -m 'one' --allow-empty`)
-  const oneCommitHash = await execAsync(`git log --pretty=format:%H -n 1`)
+  const oneCommitHash = await execAsync(`git log --pretty=format:%H -n 1`).then(
+    ({ stdout }) => stdout,
+  )
   await execAsync(`git commit -m 'two' --allow-empty`)
-  const secondCommitHash = await execAsync(`git log --pretty=format:%H -n 1`)
+  const secondCommitHash = await execAsync(
+    `git log --pretty=format:%H -n 1`,
+  ).then(({ stdout }) => stdout)
   await execAsync(`git commit -m 'three' --allow-empty`)
 
   expect(await getCommits({ until: secondCommitHash.trim() })).toEqual([
@@ -51,13 +65,21 @@ it('returns commits until the given commit', async () => {
 })
 
 it('returns commits within the range', async () => {
+  await createRepository('commits-without-range')
+
   await execAsync(`git commit -m 'one' --allow-empty`)
   await execAsync(`git commit -m 'two' --allow-empty`)
-  const secondCommitHash = await execAsync(`git log --pretty=format:'%H' -n 1`)
+  const secondCommitHash = await execAsync(
+    `git log --pretty=format:'%H' -n 1`,
+  ).then(({ stdout }) => stdout)
   await execAsync(`git commit -m 'three' --allow-empty`)
-  const thirdCommitHash = await execAsync(`git log --pretty=format:'%H' -n 1`)
+  const thirdCommitHash = await execAsync(
+    `git log --pretty=format:'%H' -n 1`,
+  ).then(({ stdout }) => stdout)
   await execAsync(`git commit -m 'four' --allow-empty`)
-  const fourthCommitHash = await execAsync(`git log --pretty=format:'%H' -n 1`)
+  const fourthCommitHash = await execAsync(
+    `git log --pretty=format:'%H' -n 1`,
+  ).then(({ stdout }) => stdout)
 
   expect(
     await getCommits({
@@ -77,12 +99,20 @@ it('returns commits within the range', async () => {
 })
 
 it('returns all commits when called without any range', async () => {
+  await createRepository('all-commits')
+
   await execAsync(`git commit -m 'one' --allow-empty`)
-  const firstCommitHash = await execAsync(`git log --pretty=format:'%H' -n 1`)
+  const firstCommitHash = await execAsync(
+    `git log --pretty=format:'%H' -n 1`,
+  ).then(({ stdout }) => stdout)
   await execAsync(`git commit -m 'two' --allow-empty`)
-  const secondCommitHash = await execAsync(`git log --pretty=format:'%H' -n 1`)
+  const secondCommitHash = await execAsync(
+    `git log --pretty=format:'%H' -n 1`,
+  ).then(({ stdout }) => stdout)
   await execAsync(`git commit -m 'three' --allow-empty`)
-  const thirdCommitHash = await execAsync(`git log --pretty=format:'%H' -n 1`)
+  const thirdCommitHash = await execAsync(
+    `git log --pretty=format:'%H' -n 1`,
+  ).then(({ stdout }) => stdout)
 
   expect(await getCommits()).toEqual([
     expect.objectContaining({

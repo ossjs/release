@@ -10,7 +10,7 @@ export interface GitInfo {
 
 export async function getInfo(): Promise<GitInfo> {
   const remote = await execAsync(`git config --get remote.origin.url`).then(
-    (out) => out.trim(),
+    ({ stdout }) => stdout.trim(),
   )
   const [owner, name] = parseOriginUrl(remote)
 

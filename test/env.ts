@@ -1,9 +1,9 @@
+import * as path from 'path'
 import { rest } from 'msw'
 import { SetupServerApi, setupServer } from 'msw/node'
 import { createTeardown, TeardownApi } from 'fs-teardown'
-import { Git } from 'node-git-server'
 import { log } from '../src/logger'
-import { createOrigin, initGit, startGitProvider } from './utils'
+import { initGit, createGitProvider } from './utils'
 import { execAsync } from '../src/utils/execAsync'
 import { requiredGitHubTokenScopes } from '../src/utils/github/validateAccessToken'
 
@@ -27,30 +27,39 @@ afterAll(() => {
   api.close()
 })
 
+export interface TestEnvironmentOptions {
+  fileSystemPath: string
+}
+
 export interface TestEnvironment {
   setup(): Promise<void>
   reset(): Promise<void>
   cleanup(): Promise<void>
   api: SetupServerApi
-  fs: TeardownApi
-  git: Git
-  log: typeof log
+  createRepository(rootDir: string): Promise<{
+    fs: TeardownApi
+  }>
 }
 
-export function testEnvironment(testName: string): TestEnvironment {
-  const origin = createOrigin()
+export function testEnvironment(
+  options: TestEnvironmentOptions,
+): TestEnvironment {
   const fs = createTeardown({
-    rootDir: `ossjs-release/${testName}`,
+    // Place the test file system in node_modules to avoid
+    // weird "/tmp" resolution issue on macOS.
+    rootDir: path.resolve(__dirname, '..', `.tmp/${options.fileSystemPath}`),
   })
-  const git = new Git(fs.resolve('git-provider'))
-  git.on('push', (push) => push.accept())
-  git.on('fetch', (fetch) => fetch.accept())
+
+  const subscriptions: Array<() => Promise<any> | any> = []
+  const resolveSideEffects = async () => {
+    let unsubscribe: (() => Promise<any> | any) | undefined
+    while ((unsubscribe = subscriptions.pop())) {
+      await unsubscribe?.()
+    }
+  }
 
   return {
     api,
-    fs,
-    git,
-    log,
     async setup() {
       jest.spyOn(process, 'exit')
       jest.spyOn(log, 'info').mockImplementation()
@@ -62,20 +71,42 @@ export function testEnvironment(testName: string): TestEnvironment {
       })
 
       await fs.prepare()
-      await startGitProvider(git, await origin.get())
-      await initGit(fs, origin.url)
     },
     async reset() {
       jest.resetAllMocks()
+      await resolveSideEffects()
       await fs.reset()
-      await initGit(fs, origin.url)
     },
     async cleanup() {
-      execAsync.restoreContext()
-
       jest.restoreAllMocks()
+      await resolveSideEffects()
       await fs.cleanup()
-      await git.close()
+    },
+    async createRepository(rootDir) {
+      const absoluteRootDir = fs.resolve(rootDir)
+      const repoFs = createTeardown({
+        rootDir: absoluteRootDir,
+      })
+      await repoFs.prepare()
+      subscriptions.push(() => repoFs.cleanup())
+
+      execAsync.mockContext({
+        cwd: absoluteRootDir,
+      })
+      subscriptions.push(() => execAsync.restoreContext())
+
+      const git = await createGitProvider(
+        absoluteRootDir,
+        'octocat',
+        path.basename(rootDir),
+      )
+      subscriptions.push(() => git.client.close())
+
+      await initGit(repoFs, git.remoteUrl)
+
+      return {
+        fs: repoFs,
+      }
     },
   }
 }

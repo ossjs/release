@@ -6,7 +6,9 @@ import type { GitHubRelease } from '../../utils/github/getGitHubRelease'
 import { testEnvironment } from '../../../test/env'
 import { execAsync } from '../../utils/execAsync'
 
-const { setup, reset, cleanup, fs, api } = testEnvironment('publish')
+const { setup, reset, cleanup, api, createRepository } = testEnvironment({
+  fileSystemPath: './publish',
+})
 
 beforeAll(async () => {
   await setup()
@@ -21,6 +23,8 @@ afterAll(async () => {
 })
 
 it('publishes the next minor version', async () => {
+  const repo = await createRepository('version-next-minor')
+
   api.use(
     graphql.query('GetCommitAuthors', (req, res, ctx) => {
       return res(ctx.data({}))
@@ -38,7 +42,7 @@ it('publishes the next minor version', async () => {
     ),
   )
 
-  await fs.create({
+  await repo.fs.create({
     'package.json': JSON.stringify({
       name: 'test',
       version: '0.0.0',
@@ -49,7 +53,7 @@ module.exports = {
 }
     `,
   })
-  await fs.exec(`git add . && git commit -m 'feat: new things'`)
+  await repo.fs.exec(`git add . && git commit -m 'feat: new things'`)
 
   const publish = new Publish(
     {
@@ -69,21 +73,22 @@ module.exports = {
   expect(log.info).toHaveBeenCalledWith('release type "minor": 0.0.0 -> 0.1.0')
 
   // The release script is provided with the environmental variables.
-  expect(log.info).toHaveBeenCalledWith('release script input: 0.1.0\n')
-
-  // Must bump the "version" in package.json.
-  expect(JSON.parse(await fs.readFile('package.json', 'utf8'))).toHaveProperty(
-    'version',
-    '0.1.0',
+  expect(log.info).toHaveBeenCalledWith(
+    expect.stringContaining('release script input: 0.1.0\n'),
   )
 
-  expect(await fs.exec('git log')).toHaveProperty(
+  // Must bump the "version" in package.json.
+  expect(
+    JSON.parse(await repo.fs.readFile('package.json', 'utf8')),
+  ).toHaveProperty('version', '0.1.0')
+
+  expect(await repo.fs.exec('git log')).toHaveProperty(
     'stdout',
     expect.stringContaining('chore(release): v0.1.0'),
   )
 
   // Must create a new tag for the release.
-  expect(await fs.exec('git tag')).toHaveProperty(
+  expect(await repo.fs.exec('git tag')).toHaveProperty(
     'stdout',
     expect.stringContaining('0.1.0'),
   )
@@ -93,6 +98,8 @@ module.exports = {
 })
 
 it('releases a new version after an existing version', async () => {
+  const repo = await createRepository('version-new-after-existing')
+
   api.use(
     graphql.query('GetCommitAuthors', (req, res, ctx) => {
       return res(ctx.data({}))
@@ -110,7 +117,7 @@ it('releases a new version after an existing version', async () => {
     ),
   )
 
-  await fs.create({
+  await repo.fs.create({
     'package.json': JSON.stringify({
       name: 'test',
       version: '1.2.3',
@@ -142,21 +149,22 @@ it('releases a new version after an existing version', async () => {
   expect(log.info).toHaveBeenCalledWith('release type "minor": 1.2.3 -> 1.3.0')
 
   // The release script is provided with the environmental variables.
-  expect(log.info).toHaveBeenCalledWith('release script input: 1.3.0\n')
-
-  // Must bump the "version" in package.json.
-  expect(JSON.parse(await fs.readFile('package.json', 'utf8'))).toHaveProperty(
-    'version',
-    '1.3.0',
+  expect(log.info).toHaveBeenCalledWith(
+    expect.stringContaining('release script input: 1.3.0\n'),
   )
 
-  expect(await fs.exec('git log')).toHaveProperty(
+  // Must bump the "version" in package.json.
+  expect(
+    JSON.parse(await repo.fs.readFile('package.json', 'utf8')),
+  ).toHaveProperty('version', '1.3.0')
+
+  expect(await repo.fs.exec('git log')).toHaveProperty(
     'stdout',
     expect.stringContaining('chore(release): v1.3.0'),
   )
 
   // Must create a new tag for the release.
-  expect(await fs.exec('git tag')).toHaveProperty(
+  expect(await repo.fs.exec('git tag')).toHaveProperty(
     'stdout',
     expect.stringContaining('v1.3.0'),
   )
@@ -166,6 +174,8 @@ it('releases a new version after an existing version', async () => {
 })
 
 it('comments on relevant github issues', async () => {
+  const repo = await createRepository('issue-comments')
+
   const commentsCreated = new Map<string, string>()
 
   api.use(
@@ -209,7 +219,7 @@ it('comments on relevant github issues', async () => {
     ),
   )
 
-  await fs.create({
+  await repo.fs.create({
     'package.json': JSON.stringify({
       name: 'test',
       version: '0.0.0',
@@ -220,7 +230,9 @@ module.exports = {
 }
     `,
   })
-  await fs.exec(`git commit -m 'feat: supports graphql (#10)' --allow-empty`)
+  await repo.fs.exec(
+    `git commit -m 'feat: supports graphql (#10)' --allow-empty`,
+  )
 
   const publish = new Publish(
     {
@@ -239,6 +251,8 @@ module.exports = {
 })
 
 it('supports dry-run mode', async () => {
+  const repo = await createRepository('dry-mode')
+
   const getReleaseContributorsResolver = jest.fn<
     ReturnType<ResponseResolver>,
     Parameters<ResponseResolver>
@@ -259,14 +273,14 @@ it('supports dry-run mode', async () => {
       createGitHubReleaseResolver,
     ),
     rest.get(
-      'https://api.github.com/repos/octocat/test/issues/:id',
+      'https://api.github.com/repos/:owner/:repo/issues/:id',
       (req, res, ctx) => {
         return res(ctx.json({}))
       },
     ),
   )
 
-  await fs.create({
+  await repo.fs.create({
     'package.json': JSON.stringify({
       name: 'test',
       version: '1.2.3',
@@ -294,7 +308,7 @@ module.exports = {
   await publish.run()
 
   expect(log.info).toHaveBeenCalledWith(
-    'preparing release for "octocat/test" from branch "master"...',
+    'preparing release for "octocat/dry-mode" from branch "master"...',
   )
   expect(log.info).toHaveBeenCalledWith(
     expect.stringContaining('found 2 new commits:'),
@@ -305,18 +319,17 @@ module.exports = {
   expect(log.warn).toHaveBeenCalledWith(
     'skip version bump in package.json in dry-run mode (next: 1.3.0)',
   )
-  expect(JSON.parse(await fs.readFile('package.json', 'utf8'))).toHaveProperty(
-    'version',
-    '1.2.3',
-  )
+  expect(
+    JSON.parse(await repo.fs.readFile('package.json', 'utf8')),
+  ).toHaveProperty('version', '1.2.3')
 
   // Publishing script.
   expect(log.warn).toHaveBeenCalledWith(
     'skip executing publishing script in dry-run mode',
   )
-  expect(fileSystem.existsSync(fs.resolve('release.script.artifact'))).toBe(
-    false,
-  )
+  expect(
+    fileSystem.existsSync(repo.fs.resolve('release.script.artifact')),
+  ).toBe(false)
 
   // No release commit must be created.
   expect(log.warn).toHaveBeenCalledWith(
@@ -329,7 +342,10 @@ module.exports = {
     'skip creating a release tag in dry-run mode: v1.3.0',
   )
   expect(log.info).not.toHaveBeenCalledWith('created release tag "v1.3.0"!')
-  expect(await execAsync('git tag')).toBe('v1.2.3\n')
+  expect(await execAsync('git tag')).toEqual({
+    stderr: '',
+    stdout: 'v1.2.3\n',
+  })
 
   // Release notes must still be generated.
   expect(log.info).toHaveBeenCalledWith(
@@ -344,10 +360,120 @@ module.exports = {
   )
 
   // Dry mode still gets all release contributors because
-  // it a read action.
+  // it's a read operation.
   expect(getReleaseContributorsResolver).toHaveBeenCalledTimes(1)
 
   expect(log.warn).toHaveBeenCalledWith(
     'release "v1.3.0" completed in dry-run mode!',
   )
+})
+
+it('streams the release script stdout to the main process', async () => {
+  const repo = await createRepository('stream-stdout')
+
+  api.use(
+    graphql.query('GetCommitAuthors', (req, res, ctx) => {
+      return res(ctx.data({}))
+    }),
+    rest.post<never, never, GitHubRelease>(
+      'https://api.github.com/repos/:owner/:repo/releases',
+      (req, res, ctx) => {
+        return res(
+          ctx.status(201),
+          ctx.json({
+            html_url: '/releases/1',
+          }),
+        )
+      },
+    ),
+  )
+
+  await repo.fs.create({
+    'package.json': JSON.stringify({
+      name: 'publish-stream',
+    }),
+    'stream-stdout.js': `
+console.log('hello')
+setTimeout(() => console.log('world'), 100)
+setTimeout(() => process.exit(0), 150)
+      `,
+  })
+  await execAsync(
+    `git commit -m 'feat: stream release script stdout' --allow-empty`,
+  )
+
+  const publish = new Publish(
+    {
+      script: 'node stream-stdout.js',
+    },
+    {
+      _: [],
+    },
+  )
+
+  await publish.run()
+
+  // Must log the release script stdout.
+  expect(log.info).toHaveBeenCalledWith(
+    'publishing script done, see the process output below:\n\n--- stdout ---\nhello\nworld\n\n',
+  )
+
+  // Must report a successful release.
+  expect(log.info).toHaveBeenCalledWith('release type "minor": 0.0.0 -> 0.1.0')
+  expect(log.info).toHaveBeenCalledWith('release "v0.1.0" completed!')
+})
+
+it('streams the release script stderr to the main process', async () => {
+  const repo = await createRepository('stream-stderr')
+
+  api.use(
+    graphql.query('GetCommitAuthors', (req, res, ctx) => {
+      return res(ctx.data({}))
+    }),
+    rest.post<never, never, GitHubRelease>(
+      'https://api.github.com/repos/:owner/:repo/releases',
+      (req, res, ctx) => {
+        return res(
+          ctx.status(201),
+          ctx.json({
+            html_url: '/releases/1',
+          }),
+        )
+      },
+    ),
+  )
+
+  await repo.fs.create({
+    'package.json': JSON.stringify({
+      name: 'publish-stream',
+    }),
+    'stream-stderr.js': `
+console.error('something')
+setTimeout(() => console.error('went wrong'), 100)
+setTimeout(() => process.exit(0), 150)
+      `,
+  })
+  await execAsync(
+    `git commit -m 'feat: stream release script stderr' --allow-empty`,
+  )
+
+  const publish = new Publish(
+    {
+      script: 'node stream-stderr.js',
+    },
+    {
+      _: [],
+    },
+  )
+
+  await publish.run()
+
+  // Must log the release script stdout.
+  expect(log.info).toHaveBeenCalledWith(
+    'publishing script done, see the process output below:\n\n--- stderr ---\nsomething\nwent wrong\n\n',
+  )
+
+  // Must report a successful release.
+  expect(log.info).toHaveBeenCalledWith('release type "minor": 0.0.0 -> 0.1.0')
+  expect(log.info).toHaveBeenCalledWith('release "v0.1.0" completed!')
 })

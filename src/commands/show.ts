@@ -67,7 +67,9 @@ export class Show extends Command<Argv> {
     )
 
     // Print local Git info about the release commit.
-    const commitOut = await execAsync(`git log -1 ${commit.commit.long}`)
+    const commitOut = await execAsync(`git log -1 ${commit.commit.long}`).then(
+      ({ stdout }) => stdout,
+    )
     this.log.info(commitOut)
 
     // Print the remote GitHub info about the release.

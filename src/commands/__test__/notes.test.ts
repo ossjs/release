@@ -1,11 +1,14 @@
 import { MockedRequest, ResponseResolver, rest, RestContext } from 'msw'
 import { Notes } from '../notes'
+import { log } from '../../logger'
 import { commit } from '../../utils/git/commit'
 import { testEnvironment } from '../../../test/env'
 import { execAsync } from '../../utils/execAsync'
 import { GitHubRelease } from '../../utils/github/getGitHubRelease'
 
-const { setup, reset, cleanup, api, log } = testEnvironment('notes')
+const { setup, reset, cleanup, api, createRepository } = testEnvironment({
+  fileSystemPath: 'notes',
+})
 
 let gitHubReleaseHandler: jest.Mock = jest.fn<
   ReturnType<ResponseResolver>,
@@ -41,6 +44,8 @@ afterAll(async () => {
 })
 
 it('creates a GitHub release for a past release', async () => {
+  await createRepository('past-release')
+
   api.use(
     rest.get<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases/tags/:tag',
@@ -103,7 +108,7 @@ it('creates a GitHub release for a past release', async () => {
   await notes.run()
 
   expect(log.info).toHaveBeenCalledWith(
-    'creating GitHub release for version "v0.2.0" in "octocat/test"...',
+    'creating GitHub release for version "v0.2.0" in "octocat/past-release"...',
   )
 
   expect(log.info).toHaveBeenCalledWith(
@@ -131,6 +136,8 @@ it('creates a GitHub release for a past release', async () => {
 })
 
 it('skips creating a GitHub release if the given release already exists', async () => {
+  await createRepository('skip-if-exists')
+
   api.use(
     rest.get<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases/tags/:tag',
@@ -158,7 +165,7 @@ it('skips creating a GitHub release if the given release already exists', async 
     'found existing GitHub release for "v1.0.0": /releases/1',
   )
   expect(log.info).not.toHaveBeenCalledWith(
-    'creating GitHub release for version "v1.0.0" in "octocat/test"',
+    'creating GitHub release for version "v1.0.0" in "octocat/skip-if-exists"',
   )
   expect(log.info).not.toHaveBeenCalledWith(
     expect.stringContaining('created GitHub release:'),

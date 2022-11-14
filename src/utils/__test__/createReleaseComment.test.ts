@@ -3,7 +3,9 @@ import { testEnvironment } from '../../../test/env'
 import { mockRepo } from '../../../test/fixtures'
 import { createContext } from '../createContext'
 
-const { setup, reset, cleanup, fs } = testEnvironment('create-release-comment')
+const { setup, reset, cleanup, createRepository } = testEnvironment({
+  fileSystemPath: 'create-release-comment',
+})
 
 beforeAll(async () => {
   await setup()
@@ -18,7 +20,9 @@ afterAll(async () => {
 })
 
 it('creates a release comment out of given release context', async () => {
-  await fs.create({
+  const repo = await createRepository('release-from-context')
+
+  await repo.fs.create({
     'package.json': JSON.stringify({
       name: 'my-package',
     }),

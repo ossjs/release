@@ -1,13 +1,11 @@
 {
+  "extends": "./tsconfig.build",
   "compilerOptions": {
-    "strict": true,
-    "module": "CommonJS",
-    "target": "ESNext",
-    "sourceMap": true,
-    "esModuleInterop": true,
-    "outDir": "./bin/build",
-    "baseUrl": "./src"
+    "noEmit": true,
+    "target": "esnext",
+    "module": "esnext",
+    "declaration": false
   },
   "include": ["./typings", "./src/**/*.ts"],
-  "exclude": ["node_modules", "**/*.test.ts"]
+  "exclude": ["node_modules"]
 }
