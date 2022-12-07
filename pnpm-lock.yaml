@@ -1,7 +1,7 @@
 lockfileVersion: 5.4
 
 specifiers:
-  '@open-draft/deferred-promise': ^1.3.0
+  '@open-draft/deferred-promise': ^2.1.0
   '@open-draft/until': ^2.0.0
   '@swc/core': ^1.3.16
   '@swc/jest': ^0.2.23
@@ -36,7 +36,7 @@ specifiers:
   yargs: ^17.4.1
 
 dependencies:
-  '@open-draft/deferred-promise': 1.3.0
+  '@open-draft/deferred-promise': 2.1.0
   '@open-draft/until': 2.0.0
   '@types/conventional-commits-parser': 3.0.2
   '@types/issue-parser': 3.0.1
@@ -733,8 +733,8 @@ packages:
       - supports-color
     dev: true
 
-  /@open-draft/deferred-promise/1.3.0:
-    resolution: {integrity: sha512-Xjkip4DCDapWOB5412KyRHRHws1dPXx9VxqeX6cfnWGMt96G35+b1mDL0kuUoz19amTJ46/F9z7pqiWwnT1QQA==}
+  /@open-draft/deferred-promise/2.1.0:
+    resolution: {integrity: sha512-Rzd5JrXZX8zErHzgcGyngh4fmEbSHqTETdGj9rXtejlqMIgXFlyKBA7Jn1Xp0Ls0M0Y22+xHcWiEzbmdWl0BOA==}
     dev: false
 
   /@open-draft/until/1.0.3:
