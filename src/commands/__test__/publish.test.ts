@@ -477,3 +477,41 @@ setTimeout(() => process.exit(0), 150)
   expect(log.info).toHaveBeenCalledWith('release type "minor": 0.0.0 -> 0.1.0')
   expect(log.info).toHaveBeenCalledWith('release "v0.1.0" completed!')
 })
+
+it('only pushes the newly created release tag to the remote', async () => {
+  const repo = await createRepository('push-release-tag')
+
+  await repo.fs.create({
+    'package.json': JSON.stringify({ name: 'push-tag', version: '1.0.0' }),
+  })
+
+  api.use(
+    graphql.query('GetCommitAuthors', (req, res, ctx) => {
+      return res(ctx.data({}))
+    }),
+    rest.post<never, never, GitHubRelease>(
+      'https://api.github.com/repos/:owner/:repo/releases',
+      (req, res, ctx) => {
+        return res(
+          ctx.status(201),
+          ctx.json({
+            html_url: '/releases/1',
+          }),
+        )
+      },
+    ),
+  )
+
+  // Create an existing tag
+  await execAsync(`git tag v1.0.0`)
+  await execAsync(`git push origin v1.0.0`)
+
+  // Create a new commit.
+  await execAsync(`git commit -m 'feat: new feature' --allow-empty`)
+
+  const publish = new Publish({ script: 'exit 0' }, { _: [] })
+  await publish.run()
+
+  expect(log.info).toHaveBeenCalledWith('release type "minor": 1.0.0 -> 1.1.0')
+  expect(log.info).toHaveBeenCalledWith('release "v1.1.0" completed!')
+})
