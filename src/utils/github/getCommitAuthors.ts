@@ -126,7 +126,13 @@ export async function getCommitAuthors(
       // Add each commit author in the pull request.
       for (const commit of data.repository.pullRequest.commits.nodes) {
         for (const author of commit.commit.authors.nodes) {
-          addAuthor(author.user.login)
+          /**
+           * @note In some situations, GitHub will return "user: null"
+           * for the commit user. Nobody to add to the authors then.
+           */
+          if (author.user != null) {
+            addAuthor(author.user.login)
+          }
         }
       }
 
