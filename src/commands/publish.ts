@@ -358,6 +358,10 @@ ${[
   private async generateReleaseNotes(
     commits: ParsedCommitWithHash[],
   ): Promise<string> {
+    this.log.info(
+      format('generating release notes for %d commits...', commits.length),
+    )
+
     const releaseNotes = await Notes.generateReleaseNotes(this.context, commits)
     this.log.info(`generated release notes:\n\n${releaseNotes}\n`)
 
@@ -390,6 +394,8 @@ ${[
    * Create a new GitHub release.
    */
   private async createGitHubRelease(releaseNotes: string): Promise<string> {
+    this.log.info('creating a new GitHub release...')
+
     if (this.argv.dryRun) {
       this.log.warn('skip creating a GitHub release in dry-run mode')
       return '#'
@@ -409,54 +415,59 @@ ${[
     commits: ParsedCommitWithHash[],
     releaseUrl: string,
   ): Promise<void> {
-    const issueIds = await getReleaseRefs(commits)
+    this.log.info('commenting on referenced GitHib issues...')
+
+    const referencedIssueIds = await getReleaseRefs(commits)
+    const issuesCount = referencedIssueIds.size
     const releaseCommentText = createReleaseComment({
       context: this.context,
       releaseUrl,
     })
 
-    if (issueIds.size > 0) {
-      const issuesCount = issueIds.size
-      const issuesNoun = issuesCount === 1 ? 'issue' : 'issues'
-      const issuesDisplayList = Array.from(issueIds)
-        .map((id) => `  - ${id}`)
-        .join('\n')
+    if (issuesCount === 0) {
+      this.log.info('no referenced GitHub issues, nothing to comment!')
+      return
+    }
 
-      if (this.argv.dryRun) {
-        this.log.warn(
-          format(
-            'skip commenting on %d GitHub %s:\n%s',
-            issueIds.size,
-            issuesNoun,
-            issuesDisplayList,
-          ),
-        )
-        return
-      }
+    this.log.info(format('found %d referenced GitHub issues!', issuesCount))
 
-      this.log.info(
+    const issuesNoun = issuesCount === 1 ? 'issue' : 'issues'
+    const issuesDisplayList = Array.from(referencedIssueIds)
+      .map((id) => `  - ${id}`)
+      .join('\n')
+
+    if (this.argv.dryRun) {
+      this.log.warn(
         format(
-          'commenting on %d GitHub %s:\n%s',
+          'skip commenting on %d GitHub %s:\n%s',
           issuesCount,
           issuesNoun,
           issuesDisplayList,
         ),
       )
-
-      const commentPromises: Promise<void>[] = []
-      for (const issueId of issueIds) {
-        commentPromises.push(
-          createComment(issueId, releaseCommentText).catch((error) => {
-            this.log.error(
-              format('commenting on issue "%s" failed: %s', error.message),
-            )
-          }),
-        )
-      }
-
-      await Promise.allSettled(commentPromises)
-    } else {
-      this.log.info('no referenced GitHub issues, nothing to comment!')
+      return
     }
+
+    this.log.info(
+      format(
+        'commenting on %d GitHub %s:\n%s',
+        issuesCount,
+        issuesNoun,
+        issuesDisplayList,
+      ),
+    )
+
+    const commentPromises: Promise<void>[] = []
+    for (const issueId of referencedIssueIds) {
+      commentPromises.push(
+        createComment(issueId, releaseCommentText).catch((error) => {
+          this.log.error(
+            format('commenting on issue "%s" failed: %s', error.message),
+          )
+        }),
+      )
+    }
+
+    await Promise.allSettled(commentPromises)
   }
 }
