@@ -76,6 +76,9 @@ module.exports = {
   expect(log.info).toHaveBeenCalledWith(
     expect.stringContaining('release script input: 0.1.0\n'),
   )
+  expect(log.info).toHaveBeenCalledWith(
+    expect.stringContaining('bumped version in package.json to: 0.1.0'),
+  )
 
   // Must bump the "version" in package.json.
   expect(
@@ -151,6 +154,9 @@ it('releases a new version after an existing version', async () => {
   // The release script is provided with the environmental variables.
   expect(log.info).toHaveBeenCalledWith(
     expect.stringContaining('release script input: 1.3.0\n'),
+  )
+  expect(log.info).toHaveBeenCalledWith(
+    expect.stringContaining('bumped version in package.json to: 1.3.0'),
   )
 
   // Must bump the "version" in package.json.
