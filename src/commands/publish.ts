@@ -1,5 +1,7 @@
-import { until } from '@open-draft/until'
+import { exec } from 'node:child_process'
 import { invariant, format } from 'outvariant'
+import { until } from '@open-draft/until'
+import { DeferredPromise } from '@open-draft/deferred-promise'
 import { BuilderCallback } from 'yargs'
 import { Command } from '../Command'
 import { createContext, ReleaseContext } from '../utils/createContext'
@@ -225,33 +227,41 @@ export class Publish extends Command<Argv> {
       return
     }
 
+    // Execute the publish script.
     this.log.info('executing publishing script...')
-
-    const publishResult = await until(async () => {
-      const releaseScriptStd = await execAsync(this.config.script, {
+    const publishScriptPromise = new DeferredPromise<void>()
+    const publishScriptIo = exec(
+      this.config.script,
+      {
         env: {
           ...process.env,
           ...env,
         },
-      })
+      },
+      (error) => {
+        publishScriptPromise.reject(error)
+      },
+    )
 
-      this.log.info(`publishing script done, see the process output below:
+    publishScriptIo.on('exit', (code) => {
+      if (code !== 0) {
+        return publishScriptPromise.reject(
+          format(`Publish script exited with code %d`, code),
+        )
+      }
 
-${[
-  ['--- stdout ---', releaseScriptStd.stdout],
-  ['--- stderr ---', releaseScriptStd.stderr],
-]
-  .filter(([, data]) => !!data)
-  .map(([header, data]) => `${header}\n${data}`)
-  .join('\n\n')}
-`)
+      publishScriptPromise.resolve()
     })
 
-    invariant(
-      publishResult.error == null,
-      'Failed to publish: the publish script exited.\n%s',
-      publishResult.error?.message,
-    )
+    await publishScriptPromise.catch((error) => {
+      // Print the original publish script error.
+      this.log.error(error)
+
+      invariant(
+        false,
+        'Failed to publish: the publish script errored. See the original error above.',
+      )
+    })
 
     this.log.info('published successfully!')
   }

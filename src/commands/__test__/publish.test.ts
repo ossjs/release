@@ -455,7 +455,7 @@ it('streams the release script stderr to the main process', async () => {
     }),
     'stream-stderr.js': `
 console.error('something')
-setTimeout(() => console.error('went wrong'), 100)
+setTimeout(() => process.stderr.write('went wrong'), 100)
 setTimeout(() => process.exit(0), 150)
       `,
   })
