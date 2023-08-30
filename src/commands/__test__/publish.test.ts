@@ -57,7 +57,7 @@ module.exports = {
 
   const publish = new Publish(
     {
-      script: 'echo "release script input: $RELEASE_VERSION"',
+      use: 'echo "release script input: $RELEASE_VERSION"',
     },
     { _: [] },
   )
@@ -133,7 +133,7 @@ it('releases a new version after an existing version', async () => {
 
   const publish = new Publish(
     {
-      script: 'echo "release script input: $RELEASE_VERSION"',
+      use: 'echo "release script input: $RELEASE_VERSION"',
     },
     { _: [] },
   )
@@ -242,7 +242,7 @@ module.exports = {
 
   const publish = new Publish(
     {
-      script: 'echo "release script input: $RELEASE_VERSION"',
+      use: 'echo "release script input: $RELEASE_VERSION"',
     },
     { _: [] },
   )
@@ -304,7 +304,7 @@ module.exports = {
 
   const publish = new Publish(
     {
-      script: 'touch release.script.artifact',
+      use: 'touch release.script.artifact',
     },
     {
       _: [],
@@ -410,7 +410,7 @@ setTimeout(() => process.exit(0), 150)
 
   const publish = new Publish(
     {
-      script: 'node stream-stdout.js',
+      use: 'node stream-stdout.js',
     },
     {
       _: [],
@@ -465,7 +465,7 @@ setTimeout(() => process.exit(0), 150)
 
   const publish = new Publish(
     {
-      script: 'node stream-stderr.js',
+      use: 'node stream-stderr.js',
     },
     {
       _: [],
@@ -515,7 +515,12 @@ it('only pushes the newly created release tag to the remote', async () => {
   // Create a new commit.
   await execAsync(`git commit -m 'feat: new feature' --allow-empty`)
 
-  const publish = new Publish({ script: 'exit 0' }, { _: [] })
+  const publish = new Publish(
+    {
+      use: 'exit 0',
+    },
+    { _: [] },
+  )
   await publish.run()
 
   expect(log.info).toHaveBeenCalledWith('release type "minor": 1.0.0 -> 1.1.0')

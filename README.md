@@ -78,18 +78,12 @@ npm install @ossjs/release --save-dev
 
 ### Create configuration
 
-Create a configuration file at the root of your repository:
+Create a `release.config.json` file at the root of your project. Open the newly created file and specify the `use` command that publishes your package:
 
-```sh
-touch ossjs.release.config.js
-```
-
-Open the newly created file and specify the `script` command that publishes your package:
-
-```js
-// ossjs.release.config.js
-module.exports = {
-  script: 'npm publish',
+```json
+// release.config.json
+{
+  "use": "npm publish"
 }
 ```
 
@@ -115,7 +109,7 @@ Congratulations! :tada: You've successfully published your first release!
 
 ## Configuration
 
-This tool expects a configuration file at `ossjs.release.config.js`. The configuration file must export an object of the following shape:
+This tool expects a configuration file at `release.config.json`. The configuration file must export an object of the following shape:
 
 ```ts
 {
@@ -123,7 +117,7 @@ This tool expects a configuration file at `ossjs.release.config.js`. The configu
    * The publishing script to run.
    * @example "npm publish"
    */
-  script: string
+  use: string
 }
 ```
 
@@ -269,11 +263,11 @@ jobs:
 Create the configuration file and specify the release script:
 
 ```js
-// ossjs.release.config.js
-module.exports = {
+// release.config.json
+{
   // Note that NPM doesn't need the next release version.
-  // It will read the bumped version from "package.json".
-  script: 'npm publish',
+  // It will read the incremented version from "package.json".
+  "use": "npm publish"
 }
 ```
 
@@ -284,9 +278,9 @@ module.exports = {
 Running `yarn publish` will prompt you for the next release version. Use the `--new-version` option and provide it with the `RELEASE_VERSION` environmental variable injected by Release that indicates the next release version based on your commit history.
 
 ```js
-// ossjs.release.config.js
-module.exports = {
-  script: 'yarn publish --new-version $RELEASE_VERSION',
+// release.config.json
+{
+  "use": "yarn publish --new-version $RELEASE_VERSION"
 }
 ```
 
@@ -304,11 +298,11 @@ Yarn also doesn't seem to respect the `NODE_AUTH_TOKEN` environment variable. Pl
 ### Usage with PNPM
 
 ```js
-// ossjs.release.config.js
-module.exports = {
+// release.config.json
+{
   // Prevent PNPM from checking for a clean Git state
   // to ignore the intermediate release state of the repository.
-  script: 'pnpm publish --no-git-checks',
+  "use": "pnpm publish --no-git-checks"
 }
 ```
 

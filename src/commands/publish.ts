@@ -228,7 +228,7 @@ export class Publish extends Command<Argv> {
     this.log.info('executing publishing script...')
 
     const publishResult = await until(async () => {
-      const releaseScriptStd = await execAsync(this.config.script, {
+      const releaseScriptStd = await execAsync(this.config.use, {
         env: {
           ...process.env,
           ...env,
