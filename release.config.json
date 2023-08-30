@@ -1,8 +1,3 @@
 {
-  "rules": [
-    {
-      "branch": "main",
-      "use": "pnpm publish --no-git-checks"
-    }
-  ]
+  "use": "pnpm publish --no-git-checks"
 }
