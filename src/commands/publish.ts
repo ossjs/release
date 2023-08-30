@@ -152,7 +152,9 @@ export class Publish extends Command<Argv> {
       )
     } else {
       bumpPackageJson(nextVersion)
-      this.log.info('bumped version in package.json to:', nextVersion)
+      this.log.info(
+        format('bumped version in package.json to: %s', nextVersion),
+      )
     }
 
     // Execute the publishing script.
