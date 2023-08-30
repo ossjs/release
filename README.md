@@ -113,10 +113,20 @@ This tool expects a configuration file at `release.config.json`. The configurati
 
 ```ts
 {
-  /**
-   * The publishing script to run.
-   * @example "npm publish"
-   */
+  profiles: Array<{
+    /**
+     * Profile name.
+     * @default "latest"
+     */
+    name: string
+
+    /**
+     * The publishing script to run.
+     * @example "npm publish"
+     * @example "pnpm publish --no-git-checks"
+     */
+    use: string
+  }>
   use: string
 }
 ```
@@ -129,14 +139,23 @@ Publishes a new version of the package.
 
 #### Options
 
-| Option name       | Type      | Description                                                                                                                                                                            |
-| ----------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--dry-run`, `-d` | `boolean` | Creates a release in a dry-run mode. **Note:** this still requires a valid `GITHUB_TOKEN` environmental variable, as the dry-run mode will perform read operations on your repository. |
+| Option name       | Type                           | Description                                                                                                                                                                            |
+| ----------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--profile`, `-p` | `string` (Default: `"latest"`) | Release profile name from `release.config.json`.                                                                                                                                       |
+| `--dry-run`, `-d` | `boolean`                      | Creates a release in a dry-run mode. **Note:** this still requires a valid `GITHUB_TOKEN` environmental variable, as the dry-run mode will perform read operations on your repository. |
 
 #### Example
 
+Running this command will publish the package according to the `latest` defined profile:
+
 ```sh
 release publish
+```
+
+Providing an explicit `--profile` option allows to publish the package accordig to another profile from `release.config.json`:
+
+```sh
+release publish --profile nightly
 ```
 
 ### `notes`
@@ -304,6 +323,49 @@ Yarn also doesn't seem to respect the `NODE_AUTH_TOKEN` environment variable. Pl
   // to ignore the intermediate release state of the repository.
   "use": "pnpm publish --no-git-checks"
 }
+```
+
+### Releasing multiple tags
+
+Leverage GitHub Actions and multiple Release configurations to release different tags from different Git branches.
+
+```json
+// release.config.json
+{
+  "profiles": [
+    {
+      "name": "latest",
+      "use": "npm publish"
+    },
+    {
+      "name": "nightly",
+      "use": "npm publish --tag nightly"
+    }
+  ]
+}
+```
+
+```yml
+name: release
+
+on:
+  push:
+    # Set multiple branches to trigger this workflow.
+    branches: [main, dev]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      # Release to the default ("latest") tag on "main".
+      - name: Release latest
+        if: github.ref == "refs/heads/main"
+        run: npx release publish
+
+      # Release to the "nightly" tag on "dev'.
+      - name: Release nightly
+        if: github.ref == "refs/heads/dev"
+        run: npx release publish -p nightly
 ```
 
 ## Comparison

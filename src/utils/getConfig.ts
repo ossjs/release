@@ -2,6 +2,12 @@ import { invariant } from 'outvariant'
 import * as path from 'path'
 
 export interface Config {
+  profiles: Array<ReleaseProfile>
+}
+
+export interface ReleaseProfile {
+  name: string
+
   /**
    * The publish script command.
    * @example npm publish $NEXT_VERSION
@@ -20,8 +26,13 @@ export function getConfig(): Config {
 
 function validateConfig(config: Config): void {
   invariant(
-    typeof config.use === 'string',
-    'Failed to parse Release configuration: expected a root-level "use" property to be a string but got %s',
-    typeof config.use,
+    Array.isArray(config.profiles),
+    'Failed to parse Release configuration: expected a root-level "tags" property to be an array but got %j',
+    config.profiles,
+  )
+
+  invariant(
+    config.profiles.length > 0,
+    'Failed to parse Release configuration: expected at least one profile to be defined',
   )
 }
