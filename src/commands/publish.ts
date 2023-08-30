@@ -107,7 +107,7 @@ export class Publish extends Command<Argv> {
     )
 
     const commits = await parseCommits(rawCommits)
-    this.log.info('successfully parsed %d commit(s)!', commits.length)
+    this.log.info(format('successfully parsed %d commit(s)!', commits.length))
 
     if (commits.length === 0) {
       this.log.warn('no commits since the latest release, skipping...')
@@ -216,7 +216,9 @@ export class Publish extends Command<Argv> {
       RELEASE_VERSION: this.context.nextRelease.version,
     }
 
-    this.log.info('preparing to run the publishing script with:\n%o', env)
+    this.log.info(
+      format('preparing to run the publishing script with:\n%j', env),
+    )
 
     if (this.argv.dryRun) {
       this.log.warn('skip executing publishing script in dry-run mode')
@@ -379,7 +381,9 @@ ${[
       pushResult.error,
     )
 
-    this.log.info('pushed changes to "%s" (origin)!', this.context.repo.remote)
+    this.log.info(
+      format('pushed changes to "%s" (origin)!', this.context.repo.remote),
+    )
   }
 
   /**
