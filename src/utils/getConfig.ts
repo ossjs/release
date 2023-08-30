@@ -1,3 +1,4 @@
+import { invariant } from 'outvariant'
 import * as path from 'path'
 
 export interface Config {
@@ -12,6 +13,15 @@ export interface Config {
 export function getConfig(): Config {
   const configPath = path.resolve(process.cwd(), 'release.config.json')
   const config = require(configPath)
+  validateConfig(config)
 
   return config
+}
+
+function validateConfig(config: Config): void {
+  invariant(
+    typeof config.use === 'string',
+    'Failed to parse Release configuration: expected a root-level "use" property to be a string but got %s',
+    typeof config.use,
+  )
 }
