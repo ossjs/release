@@ -19,7 +19,7 @@ import { getReleaseRefs } from '../utils/release-notes/getReleaseRefs'
 import { parseCommits, ParsedCommitWithHash } from '../utils/git/parseCommits'
 import { createComment } from '../utils/github/createComment'
 import { createReleaseComment } from '../utils/createReleaseComment'
-import { demandGitHubToken } from '../utils/env'
+import { demandGitHubToken, demandNpmToken } from '../utils/env'
 import { Notes } from './notes'
 import { ReleaseProfile } from 'utils/getConfig'
 
@@ -74,6 +74,11 @@ export class Publish extends Command<PublishArgv> {
     this.profile = profileDefinition
 
     await demandGitHubToken().catch((error) => {
+      this.log.error(error.message)
+      process.exit(1)
+    })
+
+    await demandNpmToken().catch((error) => {
       this.log.error(error.message)
       process.exit(1)
     })
