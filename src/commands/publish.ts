@@ -19,28 +19,39 @@ import { getReleaseRefs } from '../utils/release-notes/getReleaseRefs'
 import { parseCommits, ParsedCommitWithHash } from '../utils/git/parseCommits'
 import { createComment } from '../utils/github/createComment'
 import { createReleaseComment } from '../utils/createReleaseComment'
-import { demandGitHubToken } from '../utils/env'
+import { demandGitHubToken, demandNpmToken } from '../utils/env'
 import { Notes } from './notes'
+import { ReleaseProfile } from 'utils/getConfig'
 
-interface Argv {
+interface PublishArgv {
+  profile: string
   dryRun?: boolean
 }
 
 export type RevertAction = () => Promise<void>
 
-export class Publish extends Command<Argv> {
+export class Publish extends Command<PublishArgv> {
   static command = 'publish'
   static description = 'Publish the package'
-  static builder: BuilderCallback<{}, Argv> = (yargs) => {
-    return yargs.usage('$0 publish [options]').option('dry-run', {
-      alias: 'd',
-      type: 'boolean',
-      default: false,
-      demandOption: false,
-      description: 'Print command steps without executing them',
-    })
+  static builder: BuilderCallback<{}, PublishArgv> = (yargs) => {
+    return yargs
+      .usage('$0 publish [options]')
+      .option('profile', {
+        alias: 'p',
+        type: 'string',
+        default: 'latest',
+        demandOption: true,
+      })
+      .option('dry-run', {
+        alias: 'd',
+        type: 'boolean',
+        default: false,
+        demandOption: false,
+        description: 'Print command steps without executing them',
+      })
   }
 
+  private profile: ReleaseProfile = null as any
   private context: ReleaseContext = null as any
 
   /**
@@ -49,7 +60,25 @@ export class Publish extends Command<Argv> {
   private revertQueue: Array<RevertAction> = []
 
   public run = async (): Promise<void> => {
+    const profileName = this.argv.profile
+    const profileDefinition = this.config.profiles.find((definedProfile) => {
+      return definedProfile.name === profileName
+    })
+
+    invariant(
+      profileDefinition,
+      'Failed to publish: no profile found by name "%s". Did you forget to define it in "release.config.json"?',
+      profileName,
+    )
+
+    this.profile = profileDefinition
+
     await demandGitHubToken().catch((error) => {
+      this.log.error(error.message)
+      process.exit(1)
+    })
+
+    await demandNpmToken().catch((error) => {
       this.log.error(error.message)
       process.exit(1)
     })
@@ -225,10 +254,14 @@ export class Publish extends Command<Argv> {
       return
     }
 
-    this.log.info('executing publishing script...')
+    this.log.info(
+      format('executing publishing script for profile "%s": %s'),
+      this.profile.name,
+      this.profile.use,
+    )
 
     const publishResult = await until(async () => {
-      const releaseScriptStd = await execAsync(this.config.script, {
+      const releaseScriptStd = await execAsync(this.profile.use, {
         env: {
           ...process.env,
           ...env,

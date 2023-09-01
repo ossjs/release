@@ -57,9 +57,17 @@ module.exports = {
 
   const publish = new Publish(
     {
-      script: 'echo "release script input: $RELEASE_VERSION"',
+      profiles: [
+        {
+          name: 'latest',
+          use: 'echo "release script input: $RELEASE_VERSION"',
+        },
+      ],
     },
-    { _: [] },
+    {
+      _: [],
+      profile: 'latest',
+    },
   )
   await publish.run()
 
@@ -133,9 +141,17 @@ it('releases a new version after an existing version', async () => {
 
   const publish = new Publish(
     {
-      script: 'echo "release script input: $RELEASE_VERSION"',
+      profiles: [
+        {
+          name: 'latest',
+          use: 'echo "release script input: $RELEASE_VERSION"',
+        },
+      ],
     },
-    { _: [] },
+    {
+      _: [],
+      profile: 'latest',
+    },
   )
   await publish.run()
 
@@ -242,9 +258,17 @@ module.exports = {
 
   const publish = new Publish(
     {
-      script: 'echo "release script input: $RELEASE_VERSION"',
+      profiles: [
+        {
+          name: 'latest',
+          use: 'echo "release script input: $RELEASE_VERSION"',
+        },
+      ],
     },
-    { _: [] },
+    {
+      _: [],
+      profile: 'latest',
+    },
   )
   await publish.run()
 
@@ -304,10 +328,16 @@ module.exports = {
 
   const publish = new Publish(
     {
-      script: 'touch release.script.artifact',
+      profiles: [
+        {
+          name: 'latest',
+          use: 'touch release.script.artifact',
+        },
+      ],
     },
     {
       _: [],
+      profile: 'latest',
       dryRun: true,
     },
   )
@@ -410,10 +440,16 @@ setTimeout(() => process.exit(0), 150)
 
   const publish = new Publish(
     {
-      script: 'node stream-stdout.js',
+      profiles: [
+        {
+          name: 'latest',
+          use: 'node stream-stdout.js',
+        },
+      ],
     },
     {
       _: [],
+      profile: 'latest',
     },
   )
 
@@ -465,10 +501,16 @@ setTimeout(() => process.exit(0), 150)
 
   const publish = new Publish(
     {
-      script: 'node stream-stderr.js',
+      profiles: [
+        {
+          name: 'latest',
+          use: 'node stream-stderr.js',
+        },
+      ],
     },
     {
       _: [],
+      profile: 'latest',
     },
   )
 
@@ -515,7 +557,20 @@ it('only pushes the newly created release tag to the remote', async () => {
   // Create a new commit.
   await execAsync(`git commit -m 'feat: new feature' --allow-empty`)
 
-  const publish = new Publish({ script: 'exit 0' }, { _: [] })
+  const publish = new Publish(
+    {
+      profiles: [
+        {
+          name: 'latest',
+          use: 'exit 0',
+        },
+      ],
+    },
+    {
+      _: [],
+      profile: 'latest',
+    },
+  )
   await publish.run()
 
   expect(log.info).toHaveBeenCalledWith('release type "minor": 1.0.0 -> 1.1.0')
