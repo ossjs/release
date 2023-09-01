@@ -83,7 +83,12 @@ Create a `release.config.json` file at the root of your project. Open the newly 
 ```json
 // release.config.json
 {
-  "use": "npm publish"
+  "profiles": [
+    {
+      "name": "latest",
+      "use": "npm publish"
+    }
+  ]
 }
 ```
 
@@ -284,9 +289,14 @@ Create the configuration file and specify the release script:
 ```js
 // release.config.json
 {
-  // Note that NPM doesn't need the next release version.
-  // It will read the incremented version from "package.json".
-  "use": "npm publish"
+  "profiles": [
+    {
+      "name": "latest",
+      // Note that NPM doesn't need the next release version.
+      // It will read the incremented version from "package.json".
+      "use": "npm publish"
+    }
+  ]
 }
 ```
 
@@ -299,7 +309,12 @@ Running `yarn publish` will prompt you for the next release version. Use the `--
 ```js
 // release.config.json
 {
-  "use": "yarn publish --new-version $RELEASE_VERSION"
+  "profiles": [
+    {
+      "name": "latest",
+      "use": "yarn publish --new-version $RELEASE_VERSION"
+    }
+  ]
 }
 ```
 
@@ -319,9 +334,14 @@ Yarn also doesn't seem to respect the `NODE_AUTH_TOKEN` environment variable. Pl
 ```js
 // release.config.json
 {
-  // Prevent PNPM from checking for a clean Git state
-  // to ignore the intermediate release state of the repository.
-  "use": "pnpm publish --no-git-checks"
+  "profiles": [
+    {
+      "name": "latest",
+      // Prevent PNPM from checking for a clean Git state
+      // to ignore the intermediate release state of the repository.
+      "use": "pnpm publish --no-git-checks"
+    }
+  ]
 }
 ```
 
