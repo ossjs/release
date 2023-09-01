@@ -80,7 +80,7 @@ npm install @ossjs/release --save-dev
 
 Create a `release.config.json` file at the root of your project. Open the newly created file and specify the `use` command that publishes your package:
 
-```json
+```js
 // release.config.json
 {
   "profiles": [
@@ -219,7 +219,7 @@ release show v0.19.2
 
 This tool exposes a CLI which you can use with any continuous integration providers. No need to install actions, configure things, and pray for it to work.
 
-```json
+```js
 {
   "name": "my-package",
   "scripts": {
@@ -349,7 +349,7 @@ Yarn also doesn't seem to respect the `NODE_AUTH_TOKEN` environment variable. Pl
 
 Leverage GitHub Actions and multiple Release configurations to release different tags from different Git branches.
 
-```json
+```js
 // release.config.json
 {
   "profiles": [
