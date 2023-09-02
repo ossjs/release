@@ -274,7 +274,7 @@ export class Publish extends Command<PublishArgv> {
       this.log.info(Buffer.from(chunk).toString('utf8'))
     })
     releaseScriptPromise.io.stderr?.on('data', (chunk) => {
-      this.log.error(Buffer.from(chunk).toString('utf8'))
+      this.log.warn(Buffer.from(chunk).toString('utf8'))
     })
 
     await releaseScriptPromise.catch((error) => {
