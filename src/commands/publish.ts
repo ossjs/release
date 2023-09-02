@@ -144,7 +144,9 @@ export class Publish extends Command<PublishArgv> {
     }
 
     // Get the next release type and version number.
-    const nextReleaseType = getNextReleaseType(commits)
+    const nextReleaseType = getNextReleaseType(commits, {
+      prerelease: this.profile.prerelease,
+    })
     if (!nextReleaseType) {
       this.log.warn('committed changes do not bump version, skipping...')
       return
