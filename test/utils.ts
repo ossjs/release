@@ -21,7 +21,7 @@ export async function initGit(
   /**
    * @note Switch to the `main` branch to support olders versions of Git.
    */
-  await fs.exec('git switch -c main')
+  await fs.exec('git switch -c main').catch(() => void 0)
 
   await fs.exec('git push -u origin main')
 }

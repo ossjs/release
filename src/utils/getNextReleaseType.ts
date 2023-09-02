@@ -1,6 +1,10 @@
 import * as semver from 'semver'
 import { ParsedCommitWithHash } from './git/parseCommits'
 
+interface GetNextReleaseTypeOptions {
+  prerelease?: boolean
+}
+
 /**
  * Determine if the given commit describes a breaking change.
  * @note For now, this only analyzes the "BREAKING CHANGE" comment
@@ -12,12 +16,13 @@ export function isBreakingChange(commit: ParsedCommitWithHash): boolean {
 
 export function getNextReleaseType(
   commits: ParsedCommitWithHash[],
+  options?: GetNextReleaseTypeOptions,
 ): semver.ReleaseType | null {
   const ranges: ['minor' | null, 'patch' | null] = [null, null]
 
   for (const commit of commits) {
     if (isBreakingChange(commit)) {
-      return 'major'
+      return options?.prerelease ? 'minor' : 'major'
     }
 
     // Respect the parsed "type" from the "conventional-commits-parser".

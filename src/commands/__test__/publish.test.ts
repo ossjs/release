@@ -47,11 +47,6 @@ it('publishes the next minor version', async () => {
       name: 'test',
       version: '0.0.0',
     }),
-    'ossjs.release.config.js': `
-module.exports = {
-  script: 'echo "release script input: $RELEASE_VERSION"',
-}
-    `,
   })
   await repo.fs.exec(`git add . && git commit -m 'feat: new things'`)
 
@@ -246,11 +241,6 @@ it('comments on relevant github issues', async () => {
       name: 'test',
       version: '0.0.0',
     }),
-    'ossjs.release.config.js': `
-module.exports = {
-  script: 'echo "release script input: $RELEASE_VERSION"',
-}
-    `,
   })
   await repo.fs.exec(
     `git commit -m 'feat: supports graphql (#10)' --allow-empty`,
@@ -315,11 +305,6 @@ it('supports dry-run mode', async () => {
       name: 'test',
       version: '1.2.3',
     }),
-    'ossjs.release.config.js': `
-module.exports = {
-  script: 'exit 0',
-}
-    `,
   })
   await execAsync(`git commit -m 'chore(release): v1.2.3' --allow-empty`)
   await execAsync('git tag v1.2.3')
@@ -574,4 +559,152 @@ it('only pushes the newly created release tag to the remote', async () => {
 
   expect(log.info).toHaveBeenCalledWith('release type "minor": 1.0.0 -> 1.1.0')
   expect(log.info).toHaveBeenCalledWith('release "v1.1.0" completed!')
+})
+
+it('treats breaking changes as minor versions when "prerelease" is set to true', async () => {
+  const repo = await createRepository('prerelease-major-as-minor')
+
+  api.use(
+    graphql.query('GetCommitAuthors', (req, res, ctx) => {
+      return res(ctx.data({}))
+    }),
+    rest.post<never, never, GitHubRelease>(
+      'https://api.github.com/repos/:owner/:repo/releases',
+      (req, res, ctx) => {
+        return res(
+          ctx.status(201),
+          ctx.json({
+            html_url: '/releases/1',
+          }),
+        )
+      },
+    ),
+  )
+
+  await repo.fs.create({
+    'package.json': JSON.stringify({
+      name: 'test',
+      version: '0.1.2',
+    }),
+  })
+  await execAsync(`git commit -m 'chore(release): v0.1.2' --allow-empty`)
+  await execAsync('git tag v0.1.2')
+  await repo.fs.exec(
+    `git add . && git commit -m 'feat: new things' -m 'BREAKING CHANGE: beware'`,
+  )
+
+  const publish = new Publish(
+    {
+      profiles: [
+        {
+          name: 'latest',
+          use: 'echo "release script input: $RELEASE_VERSION"',
+          // This forces breaking changes to result in a minor
+          // version bump.
+          prerelease: true,
+        },
+      ],
+    },
+    {
+      _: [],
+      profile: 'latest',
+    },
+  )
+  await publish.run()
+
+  expect(log.error).not.toHaveBeenCalled()
+
+  // Must bump the minor version upon breaking change
+  // due to the "prerelease" configuration set.
+  expect(log.info).toHaveBeenCalledWith('release type "minor": 0.1.2 -> 0.2.0')
+
+  // Must expose the correct environment variable
+  // to the publish script.
+  expect(log.info).toHaveBeenCalledWith(
+    expect.stringContaining('release script input: 0.2.0\n'),
+  )
+
+  // Must bump the "version" in package.json.
+  expect(
+    JSON.parse(await repo.fs.readFile('package.json', 'utf8')),
+  ).toHaveProperty('version', '0.2.0')
+
+  expect(await repo.fs.exec('git log')).toHaveProperty(
+    'stdout',
+    expect.stringContaining('chore(release): v0.2.0'),
+  )
+
+  expect(log.info).toHaveBeenCalledWith('release "v0.2.0" completed!')
+})
+
+it('treats minor bumps as minor versions when "prerelease" is set to true', async () => {
+  const repo = await createRepository('prerelease-major-as-minor')
+
+  api.use(
+    graphql.query('GetCommitAuthors', (req, res, ctx) => {
+      return res(ctx.data({}))
+    }),
+    rest.post<never, never, GitHubRelease>(
+      'https://api.github.com/repos/:owner/:repo/releases',
+      (req, res, ctx) => {
+        return res(
+          ctx.status(201),
+          ctx.json({
+            html_url: '/releases/1',
+          }),
+        )
+      },
+    ),
+  )
+
+  await repo.fs.create({
+    'package.json': JSON.stringify({
+      name: 'test',
+      version: '0.0.0',
+    }),
+  })
+  await repo.fs.exec(`git add . && git commit -m 'feat: new things'`)
+
+  const publish = new Publish(
+    {
+      profiles: [
+        {
+          name: 'latest',
+          use: 'echo "release script input: $RELEASE_VERSION"',
+          // This forces breaking changes to result in a minor
+          // version bump.
+          prerelease: true,
+        },
+      ],
+    },
+    {
+      _: [],
+      profile: 'latest',
+    },
+  )
+  await publish.run()
+
+  expect(log.error).not.toHaveBeenCalled()
+
+  // Must bump the minor version upon breaking change
+  // due to the "prerelease" configuration set.
+  expect(log.info).toHaveBeenCalledWith('release type "minor": 0.0.0 -> 0.1.0')
+
+  // Must expose the correct environment variable
+  // to the publish script.
+  expect(log.info).toHaveBeenCalledWith(
+    expect.stringContaining('release script input: 0.1.0\n'),
+  )
+
+  // Must bump the "version" in package.json.
+  expect(
+    JSON.parse(await repo.fs.readFile('package.json', 'utf8')),
+  ).toHaveProperty('version', '0.1.0')
+
+  expect(await repo.fs.exec('git log')).toHaveProperty(
+    'stdout',
+    expect.stringContaining('chore(release): v0.1.0'),
+  )
+
+  expect(log.info).toHaveBeenCalledWith('release "v0.1.0" completed!')
 })

@@ -116,3 +116,43 @@ it('returns null when no commits bump the version', async () => {
     ),
   ).toBe(null)
 })
+
+it('returns "minor" for a breaking change if "prerelease" option is set', async () => {
+  expect(
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'feat(parseUrl): support relative urls',
+          body: 'BREAKING CHANGE: This is a breaking change.',
+        }),
+      ]),
+      { prerelease: true },
+    ),
+  ).toBe('minor')
+})
+
+it('returns "minor" for a minor change if "prerelease" option is set', async () => {
+  expect(
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'feat: minor change',
+        }),
+      ]),
+      { prerelease: true },
+    ),
+  ).toBe('minor')
+})
+
+it('returns "patch" for a patch change if "prerelease" option is set', async () => {
+  expect(
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'fix: some fixes',
+        }),
+      ]),
+      { prerelease: true },
+    ),
+  ).toBe('patch')
+})

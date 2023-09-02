@@ -14,6 +14,12 @@ export interface ReleaseProfile {
    * @example pnpm publish --no-git-checks
    */
   use: string
+
+  /**
+   * Indicate a pre-release version.
+   * Treat breaking changes as minor release versions.
+   */
+  prerelease?: boolean
 }
 
 export function getConfig(): Config {
