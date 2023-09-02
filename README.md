@@ -131,6 +131,13 @@ This tool expects a configuration file at `release.config.json`. The configurati
      * @example "pnpm publish --no-git-checks"
      */
     use: string
+
+    /**
+     * Treat major version bumps as minor.
+     * This prevents publishing a package that is in a
+     * pre-release phase (< 1.0).
+     */
+    prerelease?: boolean
   }>
   use: string
 }
