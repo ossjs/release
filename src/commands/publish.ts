@@ -21,7 +21,7 @@ import { createComment } from '../utils/github/createComment'
 import { createReleaseComment } from '../utils/createReleaseComment'
 import { demandGitHubToken, demandNpmToken } from '../utils/env'
 import { Notes } from './notes'
-import { ReleaseProfile } from 'utils/getConfig'
+import { ReleaseProfile } from '../utils/getConfig'
 
 interface PublishArgv {
   profile: string
@@ -260,31 +260,28 @@ export class Publish extends Command<PublishArgv> {
       this.profile.use,
     )
 
-    const publishResult = await until(async () => {
-      const releaseScriptStd = await execAsync(this.profile.use, {
-        env: {
-          ...process.env,
-          ...env,
-        },
-      })
-
-      this.log.info(`publishing script done, see the process output below:
-
-${[
-  ['--- stdout ---', releaseScriptStd.stdout],
-  ['--- stderr ---', releaseScriptStd.stderr],
-]
-  .filter(([, data]) => !!data)
-  .map(([header, data]) => `${header}\n${data}`)
-  .join('\n\n')}
-`)
+    const releaseScriptPromise = execAsync(this.profile.use, {
+      env: {
+        ...process.env,
+        ...env,
+      },
     })
 
-    invariant(
-      publishResult.error == null,
-      'Failed to publish: the publish script exited.\n%s',
-      publishResult.error?.message,
-    )
+    // Forward the publish script's stdio to the logger.
+    releaseScriptPromise.io.stdout?.on('data', (chunk) => {
+      this.log.info(Buffer.from(chunk).toString('utf8'))
+    })
+    releaseScriptPromise.io.stderr?.on('data', (chunk) => {
+      this.log.error(Buffer.from(chunk).toString('utf8'))
+    })
+
+    await releaseScriptPromise.catch((error) => {
+      this.log.error(error)
+      this.log.error(
+        'Failed to publish: the publih script errored. See the original error above.',
+      )
+      process.exit(releaseScriptPromise.io.exitCode || 1)
+    })
 
     this.log.info('published successfully!')
   }

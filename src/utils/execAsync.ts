@@ -1,14 +1,19 @@
 import { DeferredPromise } from '@open-draft/deferred-promise'
-import { type ExecOptions, exec } from 'child_process'
+import { type ChildProcess, type ExecOptions, exec } from 'child_process'
 
 export type ExecAsyncFn = {
   (
     command: string,
     options?: ExecOptions,
-  ): DeferredPromise<ExecAsyncPromisePayload>
+  ): DeferredPromiseWithIo<ExecAsyncPromisePayload>
+
   mockContext(options: ExecOptions): void
   restoreContext(): void
   contextOptions: ExecOptions
+}
+
+interface DeferredPromiseWithIo<T> extends DeferredPromise<T> {
+  io: ChildProcess
 }
 
 export interface ExecAsyncPromisePayload {
@@ -21,12 +26,12 @@ const DEFAULT_CONTEXT: Partial<ExecOptions> = {
 }
 
 export const execAsync = <ExecAsyncFn>((command, options = {}) => {
-  const donePromise = new DeferredPromise<{
+  const commandPromise = new DeferredPromise<{
     stdout: string
     stderr: string
   }>()
 
-  exec(
+  const io = exec(
     command,
     {
       ...execAsync.contextOptions,
@@ -34,18 +39,23 @@ export const execAsync = <ExecAsyncFn>((command, options = {}) => {
     },
     (error, stdout, stderr) => {
       if (error) {
-        donePromise.reject(error)
-        return
+        return commandPromise.reject(error)
       }
 
-      donePromise.resolve({
+      commandPromise.resolve({
         stdout,
         stderr,
       })
     },
   )
 
-  return donePromise
+  // Set the reference to the spawned child process
+  // on the promise so the consumer can either await
+  // the entire command or tap into child process
+  // and handle it manually (e.g. forward stdio).
+  Reflect.set(commandPromise, 'io', io)
+
+  return commandPromise
 })
 
 execAsync.mockContext = (options) => {

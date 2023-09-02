@@ -456,9 +456,8 @@ setTimeout(() => process.exit(0), 150)
   await publish.run()
 
   // Must log the release script stdout.
-  expect(log.info).toHaveBeenCalledWith(
-    'publishing script done, see the process output below:\n\n--- stdout ---\nhello\nworld\n\n',
-  )
+  expect(log.info).toHaveBeenCalledWith('hello\n')
+  expect(log.info).toHaveBeenCalledWith('world\n')
 
   // Must report a successful release.
   expect(log.info).toHaveBeenCalledWith('release type "minor": 0.0.0 -> 0.1.0')
@@ -517,11 +516,11 @@ setTimeout(() => process.exit(0), 150)
   await publish.run()
 
   // Must log the release script stdout.
-  expect(log.info).toHaveBeenCalledWith(
-    'publishing script done, see the process output below:\n\n--- stderr ---\nsomething\nwent wrong\n\n',
-  )
+  expect(log.error).toHaveBeenCalledWith('something\n')
+  expect(log.error).toHaveBeenCalledWith('went wrong\n')
 
   // Must report a successful release.
+  // As long as the publish script doesn't exit, it is successful.
   expect(log.info).toHaveBeenCalledWith('release type "minor": 0.0.0 -> 0.1.0')
   expect(log.info).toHaveBeenCalledWith('release "v0.1.0" completed!')
 })
