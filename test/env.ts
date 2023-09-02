@@ -1,6 +1,6 @@
 import * as path from 'path'
 import { rest } from 'msw'
-import { SetupServerApi, setupServer } from 'msw/node'
+import { SetupServer, setupServer } from 'msw/node'
 import { createTeardown, TeardownApi } from 'fs-teardown'
 import { log } from '../src/logger'
 import { initGit, createGitProvider } from './utils'
@@ -35,7 +35,7 @@ export interface TestEnvironment {
   setup(): Promise<void>
   reset(): Promise<void>
   cleanup(): Promise<void>
-  api: SetupServerApi
+  api: SetupServer
   createRepository(rootDir: string): Promise<{
     fs: TeardownApi
   }>

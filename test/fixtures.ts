@@ -5,7 +5,12 @@ import { ParsedCommitWithHash } from '../src/utils/git/parseCommits'
 
 export function mockConfig(config: Partial<Config> = {}): Config {
   return {
-    use: 'echo "hello world"',
+    profiles: [
+      {
+        name: 'latest',
+        use: 'echo "hello world"',
+      },
+    ],
     ...config,
   }
 }

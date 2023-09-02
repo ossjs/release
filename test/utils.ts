@@ -17,7 +17,13 @@ export async function initGit(
     'git config user.email "actions@github.com" && git config user.name "GitHub Actions"',
   )
   await fs.exec('git commit -m "chore(test): initial commit" --allow-empty')
-  await fs.exec('git push -u origin master')
+
+  /**
+   * @note Switch to the `main` branch to support olders versions of Git.
+   */
+  await fs.exec('git switch -c main')
+
+  await fs.exec('git push -u origin main')
 }
 
 /**
