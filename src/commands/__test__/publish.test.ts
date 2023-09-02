@@ -500,9 +500,9 @@ setTimeout(() => process.exit(0), 150)
 
   await publish.run()
 
-  // Must log the release script stdout.
-  expect(log.error).toHaveBeenCalledWith('something\n')
-  expect(log.error).toHaveBeenCalledWith('went wrong\n')
+  // Must log the release script stderr.
+  expect(log.warn).toHaveBeenCalledWith('something\n')
+  expect(log.warn).toHaveBeenCalledWith('went wrong\n')
 
   // Must report a successful release.
   // As long as the publish script doesn't exit, it is successful.
