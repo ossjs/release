@@ -344,7 +344,7 @@ module.exports = {
   await publish.run()
 
   expect(log.info).toHaveBeenCalledWith(
-    'preparing release for "octocat/dry-mode" from branch "master"...',
+    'preparing release for "octocat/dry-mode" from branch "main"...',
   )
   expect(log.info).toHaveBeenCalledWith(
     expect.stringContaining('found 2 new commits:'),

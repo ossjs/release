@@ -20,7 +20,7 @@ afterAll(async () => {
 
 it('returns the name of the current branch', async () => {
   await createRepository('current-branch')
-  expect(await getCurrentBranch()).toBe('master')
+  expect(await getCurrentBranch()).toBe('main')
 })
 
 it('returns the name of the feature branch', async () => {
