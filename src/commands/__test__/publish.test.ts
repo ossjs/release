@@ -76,8 +76,8 @@ it('publishes the next minor version', async () => {
   expect(log.info).toHaveBeenCalledWith('release type "minor": 0.0.0 -> 0.1.0')
 
   // The release script is provided with the environmental variables.
-  expect(log.info).toHaveBeenCalledWith(
-    expect.stringContaining('release script input: 0.1.0\n'),
+  expect(process.stdout.write).toHaveBeenCalledWith(
+    'release script input: 0.1.0\n',
   )
   expect(log.info).toHaveBeenCalledWith(
     expect.stringContaining('bumped version in package.json to: 0.1.0'),
@@ -163,8 +163,8 @@ it('releases a new version after an existing version', async () => {
   expect(log.info).toHaveBeenCalledWith('release type "minor": 1.2.3 -> 1.3.0')
 
   // The release script is provided with the environmental variables.
-  expect(log.info).toHaveBeenCalledWith(
-    expect.stringContaining('release script input: 1.3.0\n'),
+  expect(process.stdout.write).toHaveBeenCalledWith(
+    'release script input: 1.3.0\n',
   )
   expect(log.info).toHaveBeenCalledWith(
     expect.stringContaining('bumped version in package.json to: 1.3.0'),
@@ -441,8 +441,8 @@ setTimeout(() => process.exit(0), 150)
   await publish.run()
 
   // Must log the release script stdout.
-  expect(log.info).toHaveBeenCalledWith('hello\n')
-  expect(log.info).toHaveBeenCalledWith('world\n')
+  expect(process.stdout.write).toHaveBeenCalledWith('hello\n')
+  expect(process.stdout.write).toHaveBeenCalledWith('world\n')
 
   // Must report a successful release.
   expect(log.info).toHaveBeenCalledWith('release type "minor": 0.0.0 -> 0.1.0')
@@ -501,8 +501,8 @@ setTimeout(() => process.exit(0), 150)
   await publish.run()
 
   // Must log the release script stderr.
-  expect(log.warn).toHaveBeenCalledWith('something\n')
-  expect(log.warn).toHaveBeenCalledWith('went wrong\n')
+  expect(process.stderr.write).toHaveBeenCalledWith('something\n')
+  expect(process.stderr.write).toHaveBeenCalledWith('went wrong\n')
 
   // Must report a successful release.
   // As long as the publish script doesn't exit, it is successful.
@@ -620,8 +620,8 @@ it('treats breaking changes as minor versions when "prerelease" is set to true',
 
   // Must expose the correct environment variable
   // to the publish script.
-  expect(log.info).toHaveBeenCalledWith(
-    expect.stringContaining('release script input: 0.2.0\n'),
+  expect(process.stdout.write).toHaveBeenCalledWith(
+    'release script input: 0.2.0\n',
   )
 
   // Must bump the "version" in package.json.
@@ -692,8 +692,8 @@ it('treats minor bumps as minor versions when "prerelease" is set to true', asyn
 
   // Must expose the correct environment variable
   // to the publish script.
-  expect(log.info).toHaveBeenCalledWith(
-    expect.stringContaining('release script input: 0.1.0\n'),
+  expect(process.stdout.write).toHaveBeenCalledWith(
+    'release script input: 0.1.0\n',
   )
 
   // Must bump the "version" in package.json.
