@@ -270,12 +270,8 @@ export class Publish extends Command<PublishArgv> {
     })
 
     // Forward the publish script's stdio to the logger.
-    releaseScriptPromise.io.stdout?.on('data', (chunk) => {
-      this.log.info(Buffer.from(chunk).toString('utf8'))
-    })
-    releaseScriptPromise.io.stderr?.on('data', (chunk) => {
-      this.log.warn(Buffer.from(chunk).toString('utf8'))
-    })
+    releaseScriptPromise.io.stdout?.pipe(process.stdout)
+    releaseScriptPromise.io.stderr?.pipe(process.stderr)
 
     await releaseScriptPromise.catch((error) => {
       this.log.error(error)
