@@ -276,7 +276,7 @@ export class Publish extends Command<PublishArgv> {
     await releaseScriptPromise.catch((error) => {
       this.log.error(error)
       this.log.error(
-        'Failed to publish: the publih script errored. See the original error above.',
+        'Failed to publish: the publish script errored. See the original error above.',
       )
       process.exit(releaseScriptPromise.io.exitCode || 1)
     })
