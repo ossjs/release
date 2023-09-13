@@ -10,11 +10,15 @@ interface GetNextReleaseTypeOptions {
  * @see https://www.conventionalcommits.org/en/v1.0.0/#summary
  */
 export function isBreakingChange(commit: ParsedCommitWithHash): boolean {
-  if (!commit.footer) {
-    return false
+  if (commit.typeAppendix === '!') {
+    return true
   }
 
-  return commit.footer.includes('BREAKING CHANGE:')
+  if (commit.footer && commit.footer.includes('BREAKING CHANGE:')) {
+    return true
+  }
+
+  return false
 }
 
 export function getNextReleaseType(

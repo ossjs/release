@@ -28,6 +28,38 @@ it('returns "major" for "feat" commit with a subject and a "BREAKING CHANGE" foo
   ).toBe('major')
 })
 
+it('returns "major" for commits with a "!" type appendix', async () => {
+  expect(
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'feat!: some breaking change',
+        }),
+      ]),
+    ),
+  ).toBe('major')
+
+  expect(
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'feat(customScope)!: some breaking change',
+        }),
+      ]),
+    ),
+  ).toBe('major')
+
+  expect(
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'docs!: some breaking change',
+        }),
+      ]),
+    ),
+  ).toBe('major')
+})
+
 it('returns "minor" for "feat" commits', async () => {
   expect(
     getNextReleaseType(
