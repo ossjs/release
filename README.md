@@ -64,10 +64,6 @@ The bottom line is: failed releases happen. The package registry may be down, yo
 - Release commit has the following format: `chore(release): v${version}`.
 - Does not generate or update the `CHANGELOG` file. This tool generates automatic release notes from your commits and creates a new GitHub release with those notes. Use GitHub releases instead of changelogs.
 
-## Limitations
-
-- This tool does not support `!` (exclamation mark) as a commit message modifier indicating breaking changes. Please always include the `BREAKING CHANGE` indicator in the commit's body if you wish to indicate a breaking change.
-
 ## Getting started
 
 ### Install
