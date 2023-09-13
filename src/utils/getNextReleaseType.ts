@@ -6,12 +6,15 @@ interface GetNextReleaseTypeOptions {
 }
 
 /**
- * Determine if the given commit describes a breaking change.
- * @note For now, this only analyzes the "BREAKING CHANGE" comment
- * in the commit's body.
+ * Returns true if the given parsed commit represents a breaking change.
+ * @see https://www.conventionalcommits.org/en/v1.0.0/#summary
  */
 export function isBreakingChange(commit: ParsedCommitWithHash): boolean {
-  return commit.notes.some((note) => note.title === 'BREAKING CHANGE')
+  if (!commit.footer) {
+    return false
+  }
+
+  return commit.footer.includes('BREAKING CHANGE:')
 }
 
 export function getNextReleaseType(
