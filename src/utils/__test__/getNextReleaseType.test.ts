@@ -60,6 +60,72 @@ it('returns "major" for commits with a "!" type appendix', async () => {
   ).toBe('major')
 })
 
+it('does not return "major" for a commit that includes "breaking change" generic text', async () => {
+  expect(
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'fix: some breaking change',
+        }),
+      ]),
+    ),
+  ).toBe('patch')
+
+  expect(
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'feat(scope): some breaking change',
+        }),
+      ]),
+    ),
+  ).toBe('minor')
+
+  expect(
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'feat(scope): abc',
+          body: 'this is good because it is not a breaking change',
+        }),
+      ]),
+    ),
+  ).toBe('minor')
+
+  expect(
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'docs: abc',
+          body: 'should this be a BREAKING CHANGE?',
+        }),
+      ]),
+    ),
+  ).toBe(null)
+})
+
+it('does not return "major" for a commit that includes "!" in its message', async () => {
+  expect(
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'fix: adds "!" as supported character',
+        }),
+      ]),
+    ),
+  ).toBe('patch')
+
+  expect(
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'feat: adds "!" as supported character',
+        }),
+      ]),
+    ),
+  ).toBe('minor')
+})
+
 it('returns "minor" for "feat" commits', async () => {
   expect(
     getNextReleaseType(

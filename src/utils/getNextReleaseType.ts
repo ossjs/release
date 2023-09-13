@@ -46,13 +46,5 @@ export function getNextReleaseType(
     }
   }
 
-  /**
-   * @fixme Commit messages can also append "!" to the scope
-   * to indicate that the commit is a breaking change.
-   * @see https://www.conventionalcommits.org/en/v1.0.0/#summary
-   *
-   * Unfortunately, "conventional-commits-parser" does not support that.
-   */
-
   return ranges[0] || ranges[1]
 }
