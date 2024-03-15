@@ -3,16 +3,19 @@ import fetch from 'node-fetch'
 import { getInfo } from '../git/getInfo'
 
 export interface GitHubRelease {
+  tag_name: string
   html_url: string
 }
 
 export async function getGitHubRelease(
-  tag: string,
+  tag: string | ('latest' & {}),
 ): Promise<GitHubRelease | undefined> {
   const repo = await getInfo()
 
   const response = await fetch(
-    `https://api.github.com/repos/${repo.owner}/${repo.name}/releases/tags/${tag}`,
+    tag === 'latest'
+      ? `https://api.github.com/repos/${repo.owner}/${repo.name}/releases/latest`
+      : `https://api.github.com/repos/${repo.owner}/${repo.name}/releases/tags/${tag}`,
     {
       headers: {
         Accept: 'application/json',

@@ -104,7 +104,13 @@ export class Publish extends Command<PublishArgv> {
       ),
     )
 
-    // Get the latest release.
+    /**
+     * Get the latest release.
+     * @note This refers to the latest release tag at the current
+     * state of the branch. Since Release doesn't do branch analysis,
+     * this doesn't guarantee the latest release in general
+     * (consider backport releases where you checkout an old SHA).
+     */
     const tags = await getTags()
     const latestRelease = await getLatestRelease(tags)
 
