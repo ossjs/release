@@ -35,6 +35,7 @@ it('publishes the next minor version', async () => {
         return res(
           ctx.status(201),
           ctx.json({
+            tag_name: 'v1.0.0',
             html_url: '/releases/1',
           }),
         )
@@ -116,6 +117,7 @@ it('releases a new version after an existing version', async () => {
         return res(
           ctx.status(201),
           ctx.json({
+            tag_name: 'v1.0.0',
             html_url: '/releases/1',
           }),
         )
@@ -216,6 +218,7 @@ it('comments on relevant github issues', async () => {
         return res(
           ctx.status(201),
           ctx.json({
+            tag_name: 'v1.0.0',
             html_url: '/releases/1',
           }),
         )
@@ -402,6 +405,7 @@ it('streams the release script stdout to the main process', async () => {
         return res(
           ctx.status(201),
           ctx.json({
+            tag_name: 'v1.0.0',
             html_url: '/releases/1',
           }),
         )
@@ -462,6 +466,7 @@ it('streams the release script stderr to the main process', async () => {
         return res(
           ctx.status(201),
           ctx.json({
+            tag_name: 'v1.0.0',
             html_url: '/releases/1',
           }),
         )
@@ -527,6 +532,7 @@ it('only pushes the newly created release tag to the remote', async () => {
         return res(
           ctx.status(201),
           ctx.json({
+            tag_name: 'v1.0.0',
             html_url: '/releases/1',
           }),
         )
@@ -574,6 +580,7 @@ it('treats breaking changes as minor versions when "prerelease" is set to true',
         return res(
           ctx.status(201),
           ctx.json({
+            tag_name: 'v1.0.0',
             html_url: '/releases/1',
           }),
         )
@@ -650,6 +657,7 @@ it('treats minor bumps as minor versions when "prerelease" is set to true', asyn
         return res(
           ctx.status(201),
           ctx.json({
+            tag_name: 'v1.0.0',
             html_url: '/releases/1',
           }),
         )

@@ -16,7 +16,9 @@ export const api = setupServer(
 )
 
 beforeAll(() => {
-  api.listen()
+  api.listen({
+    onUnhandledRequest: 'error',
+  })
 })
 
 afterEach(() => {

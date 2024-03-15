@@ -1,9 +1,9 @@
+import { graphql } from 'msw'
 import { getCommitAuthors } from '../getCommitAuthors'
 import { log } from '../../../logger'
 import { mockCommit } from '../../../../test/fixtures'
 import { parseCommits } from '../../git/parseCommits'
 import { testEnvironment } from '../../../../test/env'
-import { graphql } from 'msw'
 
 const { setup, reset, cleanup, api } = testEnvironment({
   fileSystemPath: 'get-commit-authors',
