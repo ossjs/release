@@ -29,7 +29,13 @@ export async function createGitHubRelease(
   // latest release on GitHub. For that, fetch whichever latest
   // release exists on GitHub and see if its version is larger
   // than the version we are releasing right now.
-  const latestGitHubRelease = await getGitHubRelease('latest')
+  const latestGitHubRelease = await getGitHubRelease('latest').catch(
+    (error) => {
+      log.error(`Failed to fetch the latest GitHub release:`, error)
+      // We aren't interested in the GET endpoint errors in this context.
+      return undefined
+    },
+  )
   const shouldMarkAsLatest = latestGitHubRelease
     ? lt(latestGitHubRelease.tag_name || '0.0.0', context.nextRelease.tag)
     : // Undefined is fine, it means GitHub will use its default

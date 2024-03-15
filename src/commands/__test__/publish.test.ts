@@ -22,6 +22,13 @@ afterAll(async () => {
   await cleanup()
 })
 
+const githubLatestReleaseHandler = rest.get<never, never, GitHubRelease>(
+  `https://api.github.com/repos/:owner/:name/releases/latest`,
+  (req, res, ctx) => {
+    return res(ctx.status(404))
+  },
+)
+
 it('publishes the next minor version', async () => {
   const repo = await createRepository('version-next-minor')
 
@@ -29,6 +36,7 @@ it('publishes the next minor version', async () => {
     graphql.query('GetCommitAuthors', (req, res, ctx) => {
       return res(ctx.data({}))
     }),
+    githubLatestReleaseHandler,
     rest.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
       (req, res, ctx) => {
@@ -111,6 +119,7 @@ it('releases a new version after an existing version', async () => {
     graphql.query('GetCommitAuthors', (req, res, ctx) => {
       return res(ctx.data({}))
     }),
+    githubLatestReleaseHandler,
     rest.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
       (req, res, ctx) => {
@@ -212,6 +221,7 @@ it('comments on relevant github issues', async () => {
         }),
       )
     }),
+    githubLatestReleaseHandler,
     rest.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
       (req, res, ctx) => {
@@ -291,6 +301,7 @@ it('supports dry-run mode', async () => {
 
   api.use(
     graphql.query('GetCommitAuthors', getReleaseContributorsResolver),
+    githubLatestReleaseHandler,
     rest.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
       createGitHubReleaseResolver,
@@ -399,6 +410,7 @@ it('streams the release script stdout to the main process', async () => {
     graphql.query('GetCommitAuthors', (req, res, ctx) => {
       return res(ctx.data({}))
     }),
+    githubLatestReleaseHandler,
     rest.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
       (req, res, ctx) => {
@@ -460,6 +472,7 @@ it('streams the release script stderr to the main process', async () => {
     graphql.query('GetCommitAuthors', (req, res, ctx) => {
       return res(ctx.data({}))
     }),
+    githubLatestReleaseHandler,
     rest.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
       (req, res, ctx) => {
@@ -526,6 +539,7 @@ it('only pushes the newly created release tag to the remote', async () => {
     graphql.query('GetCommitAuthors', (req, res, ctx) => {
       return res(ctx.data({}))
     }),
+    githubLatestReleaseHandler,
     rest.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
       (req, res, ctx) => {
@@ -574,6 +588,7 @@ it('treats breaking changes as minor versions when "prerelease" is set to true',
     graphql.query('GetCommitAuthors', (req, res, ctx) => {
       return res(ctx.data({}))
     }),
+    githubLatestReleaseHandler,
     rest.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
       (req, res, ctx) => {
@@ -651,6 +666,7 @@ it('treats minor bumps as minor versions when "prerelease" is set to true', asyn
     graphql.query('GetCommitAuthors', (req, res, ctx) => {
       return res(ctx.data({}))
     }),
+    githubLatestReleaseHandler,
     rest.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
       (req, res, ctx) => {

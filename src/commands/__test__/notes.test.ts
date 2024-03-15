@@ -22,6 +22,13 @@ let gitHubReleaseHandler: jest.Mock = jest.fn<
   )
 })
 
+const githubLatestReleaseHandler = rest.get<never, never, GitHubRelease>(
+  `https://api.github.com/repos/:owner/:name/releases/latest`,
+  (req, res, ctx) => {
+    return res(ctx.status(404))
+  },
+)
+
 beforeAll(async () => {
   await setup()
 })
@@ -47,6 +54,7 @@ it('creates a GitHub release for a past release', async () => {
   await createRepository('past-release')
 
   api.use(
+    githubLatestReleaseHandler,
     rest.get<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases/tags/:tag',
       (req, res, ctx) => {
@@ -99,7 +107,12 @@ it('creates a GitHub release for a past release', async () => {
 
   const notes = new Notes(
     {
-      script: 'exit 0',
+      profiles: [
+        {
+          name: 'latest',
+          use: 'exit 0',
+        },
+      ],
     },
     {
       _: ['', '0.2.0'],
@@ -139,11 +152,13 @@ it('skips creating a GitHub release if the given release already exists', async 
   await createRepository('skip-if-exists')
 
   api.use(
+    githubLatestReleaseHandler,
     rest.get<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases/tags/:tag',
       (req, res, ctx) => {
         return res(
           ctx.json({
+            tag_name: 'v1.0.0',
             html_url: '/releases/1',
           }),
         )
@@ -153,7 +168,12 @@ it('skips creating a GitHub release if the given release already exists', async 
 
   const notes = new Notes(
     {
-      script: 'exit 0',
+      profiles: [
+        {
+          name: 'latest',
+          use: 'exit 0',
+        },
+      ],
     },
     {
       _: ['', '1.0.0'],
