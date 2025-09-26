@@ -1,5 +1,5 @@
 import * as yargs from 'yargs'
-import { getConfig } from '#/src/utils/getConfig.js'
+import { getConfig } from '#/src/utils/get-config.js'
 
 // Commands.
 import { Show } from '#/src/commands/show.js'

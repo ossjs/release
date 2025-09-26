@@ -1,5 +1,5 @@
 import { invariant } from 'outvariant'
-import { validateAccessToken } from './github/validateAccessToken.js'
+import { validateAccessToken } from '#/src/utils/github/validate-access-token.js'
 
 export async function demandGitHubToken(): Promise<void> {
   const { GITHUB_TOKEN } = process.env

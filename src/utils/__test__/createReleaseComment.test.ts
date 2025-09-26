@@ -1,7 +1,7 @@
-import { createReleaseComment } from '../createReleaseComment'
-import { testEnvironment } from '../../../test/env'
-import { mockRepo } from '../../../test/fixtures'
-import { createContext } from '../createContext'
+import { createReleaseComment } from '#/src/utils/create-release-comment.js'
+import { testEnvironment } from '#/test/env.js'
+import { mockRepo } from '#/test/fixtures.js'
+import { createContext } from '#/src/utils/create-context.js'
 
 const { setup, reset, cleanup, createRepository } = testEnvironment({
   fileSystemPath: 'create-release-comment',

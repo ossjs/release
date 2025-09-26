@@ -5,29 +5,29 @@ import { Command } from '#/src/Command.js'
 import {
   createContext,
   type ReleaseContext,
-} from '#/src/utils/createContext.js'
-import { getInfo } from '#/src/utils/git/getInfo.js'
-import { getNextReleaseType } from '#/src/utils/getNextReleaseType.js'
-import { getNextVersion } from '#/src/utils/getNextVersion.js'
-import { getCommits } from '#/src/utils/git/getCommits.js'
-import { getCurrentBranch } from '#/src/utils/git/getCurrentBranch.js'
-import { getLatestRelease } from '#/src/utils/git/getLatestRelease.js'
-import { bumpPackageJson } from '#/src/utils/bumpPackageJson.js'
-import { getTags } from '#/src/utils/git/getTags.js'
-import { execAsync } from '#/src/utils/execAsync.js'
+} from '#/src/utils/create-context.js'
+import { getInfo } from '#/src/utils/git/get-info.js'
+import { getNextReleaseType } from '#/src/utils/get-next-release-type.js'
+import { getNextVersion } from '#/src/utils/get-next-version.js'
+import { getCommits } from '#/src/utils/git/get-commits.js'
+import { getCurrentBranch } from '#/src/utils/git/get-current-branch.js'
+import { getLatestRelease } from '#/src/utils/git/get-latest-release.js'
+import { bumpPackageJson } from '#/src/utils/bump-package-json.js'
+import { getTags } from '#/src/utils/git/get-tags.js'
+import { execAsync } from '#/src/utils/exec-async.js'
 import { commit } from '#/src/utils/git/commit.js'
-import { createTag } from '#/src/utils/git/createTag.js'
+import { createTag } from '#/src/utils/git/create-tag.js'
 import { push } from '#/src/utils/git/push.js'
-import { getReleaseRefs } from '#/src/utils/release-notes/getReleaseRefs.js'
+import { getReleaseRefs } from '#/src/utils/release-notes/get-release-refs.js'
 import {
   parseCommits,
   type ParsedCommitWithHash,
-} from '#/src/utils/git/parseCommits.js'
-import { createComment } from '#/src/utils/github/createComment.js'
-import { createReleaseComment } from '#/src/utils/createReleaseComment.js'
+} from '#/src/utils/git/parse-commits.js'
+import { createComment } from '#/src/utils/github/create-comment.js'
+import { createReleaseComment } from '#/src/utils/create-release-comment.js'
 import { demandGitHubToken, demandNpmToken } from '#/src/utils/env.js'
 import { Notes } from '#/src/commands/notes.js'
-import { type ReleaseProfile } from '#/src/utils/getConfig.js'
+import { type ReleaseProfile } from '#/src/utils/get-config.js'
 
 interface PublishArgv {
   profile: string

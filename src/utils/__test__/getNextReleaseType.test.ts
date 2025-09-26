@@ -1,6 +1,6 @@
-import { mockCommit } from '../../../test/fixtures'
-import { getNextReleaseType } from '../getNextReleaseType'
-import { parseCommits } from '../git/parseCommits'
+import { mockCommit } from '#/test/fixtures.js'
+import { getNextReleaseType } from '#/src/utils/get-next-release-type.js'
+import { parseCommits } from '#/src/utils/git/parse-commits.js'
 
 it('returns "major" for a "feat" commit that contains a "BREAKING CHANGE" footnote', async () => {
   expect(

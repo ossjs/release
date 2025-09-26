@@ -3,8 +3,8 @@ import { Notes } from '#/src/commands/notes.js'
 import { log } from '#/src/logger.js'
 import { commit } from '#/src/utils/git/commit.js'
 import { testEnvironment } from '#/test/env.js'
-import { execAsync } from '#/src/utils/execAsync.js'
-import { type GitHubRelease } from '#/src/utils/github/getGitHubRelease.js'
+import { execAsync } from '#/src/utils/exec-async.js'
+import { type GitHubRelease } from '#/src/utils/github/get-github-release.js'
 
 const { setup, reset, cleanup, api, createRepository } = testEnvironment({
   fileSystemPath: 'notes',

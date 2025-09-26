@@ -1,4 +1,4 @@
-import { execAsync } from '../execAsync'
+import { execAsync } from '../exec-async.js'
 
 it('resolves with stdout of the executed command', async () => {
   expect(await execAsync('echo "hello world"')).toEqual({

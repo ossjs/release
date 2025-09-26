@@ -14,7 +14,7 @@
   ],
   "scripts": {
     "start": "pnpm build -- -w",
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.src.json",
     "test": "vitest",
     "prerelease": "pnpm build && pnpm test",
     "release": "./bin/cli.sh publish"

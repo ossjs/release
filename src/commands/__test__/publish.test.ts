@@ -8,9 +8,9 @@ import {
 } from 'msw'
 import { log } from '#/src/logger.js'
 import { Publish } from '#/src/commands/publish.js'
-import type { GitHubRelease } from '#/src/utils/github/getGitHubRelease.js'
+import type { GitHubRelease } from '#/src/utils/github/get-github-release.js'
 import { testEnvironment } from '#/test/env.js'
-import { execAsync } from '#/src/utils/execAsync.js'
+import { execAsync } from '#/src/utils/exec-async.js'
 
 const { setup, reset, cleanup, api, createRepository } = testEnvironment({
   fileSystemPath: './publish',

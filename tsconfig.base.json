@@ -2,6 +2,7 @@
   "compilerOptions": {
     "strict": true,
     "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
     "verbatimModuleSyntax": true,
     "moduleResolution": "nodenext",
     "baseUrl": ".",

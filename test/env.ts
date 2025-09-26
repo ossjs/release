@@ -4,8 +4,8 @@ import { type SetupServer, setupServer } from 'msw/node'
 import { createTeardown, type TeardownApi } from 'fs-teardown'
 import { log } from '#/src/logger.js'
 import { initGit, createGitProvider } from '#/test/utils.js'
-import { execAsync } from '#/src/utils/execAsync.js'
-import { requiredGitHubTokenScopes } from '#/src/utils/github/validateAccessToken.js'
+import { execAsync } from '#/src/utils/exec-async.js'
+import { requiredGitHubTokenScopes } from '#/src/utils/github/validate-access-token.js'
 
 export const api = setupServer(
   http.get('https://api.github.com', () => {

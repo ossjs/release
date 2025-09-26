@@ -1,4 +1,4 @@
-import { getNextVersion } from '../getNextVersion'
+import { getNextVersion } from '#/src/utils/get-next-version.js'
 
 it('returns the correct patch next version', () => {
   expect(getNextVersion('0.0.0', 'patch')).toBe('0.0.1')
