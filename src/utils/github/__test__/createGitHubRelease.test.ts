@@ -1,9 +1,9 @@
-import { rest } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { DeferredPromise } from '@open-draft/deferred-promise'
-import { testEnvironment } from '../../../../test/env'
-import { mockRepo } from '../../../../test/fixtures'
-import type { GitHubRelease } from '../getGitHubRelease'
-import { createGitHubRelease } from '../createGitHubRelease'
+import { testEnvironment } from '#/test/env.js'
+import { mockRepo } from '#/test/fixtures.js'
+import type { GitHubRelease } from '#/src/utils/github/getGitHubRelease.js'
+import { createGitHubRelease } from '#/src/utils/github/createGitHubRelease.js'
 
 const { setup, reset, cleanup, api } = testEnvironment({
   fileSystemPath: 'create-github-release',
@@ -25,28 +25,26 @@ it('marks the release as non-latest if there is a higher version released on Git
   const repo = mockRepo()
   const requestBodyPromise = new DeferredPromise()
   api.use(
-    rest.get<never, never, GitHubRelease>(
+    http.get<never, never, GitHubRelease>(
       `https://api.github.com/repos/:owner/:name/releases/latest`,
-      (req, res, ctx) => {
-        return res(
+      () => {
+        return HttpResponse.json({
           // Set the latest GitHub release as v2.0.0.
-          ctx.json({
-            tag_name: 'v2.0.0',
-            html_url: '/v2.0.0',
-          }),
-        )
+          tag_name: 'v2.0.0',
+          html_url: '/v2.0.0',
+        })
       },
     ),
-    rest.post<never, never, GitHubRelease>(
+    http.post<never, never, GitHubRelease>(
       `https://api.github.com/repos/:owner/:name/releases`,
-      (req, res, ctx) => {
-        requestBodyPromise.resolve(req.json())
-        return res(
-          ctx.status(201),
-          ctx.json({
+      async ({ request }) => {
+        requestBodyPromise.resolve(request.json())
+        return HttpResponse.json(
+          {
             tag_name: 'v1.1.1',
             html_url: '/v1.1.1',
-          }),
+          },
+          { status: 201 },
         )
       },
     ),

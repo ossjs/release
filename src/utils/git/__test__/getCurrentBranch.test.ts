@@ -1,5 +1,5 @@
-import { testEnvironment } from '../../../../test/env'
-import { execAsync } from '../../execAsync'
+import { testEnvironment } from '#/test/env.js'
+import { execAsync } from '#/src/utils/execAsync.js'
 import { getCurrentBranch } from '../getCurrentBranch'
 
 const { setup, reset, cleanup, createRepository } = testEnvironment({

@@ -1,6 +1,6 @@
 import * as getStream from 'get-stream'
-import gitLogParser, { Commit } from 'git-log-parser'
-import { execAsync } from '../execAsync'
+import gitLogParser, { type Commit } from 'git-log-parser'
+import { execAsync } from '#/src/utils/execAsync.js'
 
 export async function getCommit(hash: string): Promise<Commit | undefined> {
   Object.assign(gitLogParser.fields, {

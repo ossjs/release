@@ -1,5 +1,5 @@
-import * as fs from 'fs'
-import * as path from 'path'
+import * as fs from 'node:fs'
+import * as path from 'node:path'
 import { execAsync } from './execAsync'
 
 export function writePackageJson(nextContent: Record<string, any>): void {

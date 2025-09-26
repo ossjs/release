@@ -1,5 +1,5 @@
 import * as semver from 'semver'
-import { ParsedCommitWithHash } from './git/parseCommits'
+import { type ParsedCommitWithHash } from './git/parseCommits.js'
 
 interface GetNextReleaseTypeOptions {
   prerelease?: boolean

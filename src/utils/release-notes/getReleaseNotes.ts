@@ -1,6 +1,6 @@
-import { isBreakingChange } from '../getNextReleaseType'
-import type { ParsedCommitWithHash } from '../git/parseCommits'
-import { getCommitAuthors } from '../github/getCommitAuthors'
+import { isBreakingChange } from '#/src/utils/getNextReleaseType.js'
+import type { ParsedCommitWithHash } from '#/src/utils/git/parseCommits.js'
+import { getCommitAuthors } from '#/src/utils/github/getCommitAuthors.js'
 
 export type ReleaseNoteType = 'breaking' | 'feat' | 'fix'
 

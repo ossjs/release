@@ -1,10 +1,10 @@
 import * as yargs from 'yargs'
-import { getConfig } from './utils/getConfig'
+import { getConfig } from '#/src/utils/getConfig.js'
 
 // Commands.
-import { Show } from './commands/show'
-import { Publish } from './commands/publish'
-import { Notes } from './commands/notes'
+import { Show } from '#/src/commands/show.js'
+import { Publish } from '#/src/commands/publish.js'
+import { Notes } from '#/src/commands/notes.js'
 
 const config = getConfig()
 

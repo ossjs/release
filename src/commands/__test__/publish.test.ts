@@ -1,10 +1,16 @@
-import * as fileSystem from 'fs'
-import { ResponseResolver, graphql, rest } from 'msw'
-import { log } from '../../logger'
-import { Publish } from '../publish'
-import type { GitHubRelease } from '../../utils/github/getGitHubRelease'
-import { testEnvironment } from '../../../test/env'
-import { execAsync } from '../../utils/execAsync'
+import * as fs from 'node:fs'
+import {
+  http,
+  HttpResponse,
+  graphql,
+  type HttpResponseResolver,
+  type GraphQLResponseResolver,
+} from 'msw'
+import { log } from '#/src/logger.js'
+import { Publish } from '#/src/commands/publish.js'
+import type { GitHubRelease } from '#/src/utils/github/getGitHubRelease.js'
+import { testEnvironment } from '#/test/env.js'
+import { execAsync } from '#/src/utils/execAsync.js'
 
 const { setup, reset, cleanup, api, createRepository } = testEnvironment({
   fileSystemPath: './publish',
@@ -22,10 +28,10 @@ afterAll(async () => {
   await cleanup()
 })
 
-const githubLatestReleaseHandler = rest.get<never, never, GitHubRelease>(
+const githubLatestReleaseHandler = http.get<never, never, GitHubRelease>(
   `https://api.github.com/repos/:owner/:name/releases/latest`,
-  (req, res, ctx) => {
-    return res(ctx.status(404))
+  () => {
+    return new HttpResponse(null, { status: 404 })
   },
 )
 
@@ -33,19 +39,19 @@ it('publishes the next minor version', async () => {
   const repo = await createRepository('version-next-minor')
 
   api.use(
-    graphql.query('GetCommitAuthors', (req, res, ctx) => {
-      return res(ctx.data({}))
+    graphql.query('GetCommitAuthors', () => {
+      return HttpResponse.json({ data: {} })
     }),
     githubLatestReleaseHandler,
-    rest.post<never, never, GitHubRelease>(
+    http.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
-      (req, res, ctx) => {
-        return res(
-          ctx.status(201),
-          ctx.json({
+      () => {
+        return HttpResponse.json(
+          {
             tag_name: 'v1.0.0',
             html_url: '/releases/1',
-          }),
+          },
+          { status: 201 },
         )
       },
     ),
@@ -116,19 +122,19 @@ it('releases a new version after an existing version', async () => {
   const repo = await createRepository('version-new-after-existing')
 
   api.use(
-    graphql.query('GetCommitAuthors', (req, res, ctx) => {
-      return res(ctx.data({}))
+    graphql.query('GetCommitAuthors', () => {
+      return HttpResponse.json({ data: {} })
     }),
     githubLatestReleaseHandler,
-    rest.post<never, never, GitHubRelease>(
+    http.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
-      (req, res, ctx) => {
-        return res(
-          ctx.status(201),
-          ctx.json({
+      () => {
+        return HttpResponse.json(
+          {
             tag_name: 'v1.0.0',
             html_url: '/releases/1',
-          }),
+          },
+          { status: 201 },
         )
       },
     ),
@@ -207,9 +213,9 @@ it('comments on relevant github issues', async () => {
   const commentsCreated = new Map<string, string>()
 
   api.use(
-    graphql.query('GetCommitAuthors', (req, res, ctx) => {
-      return res(
-        ctx.data({
+    graphql.query('GetCommitAuthors', () => {
+      return HttpResponse.json({
+        data: {
           repository: {
             pullRequest: {
               author: { login: 'octocat' },
@@ -218,33 +224,30 @@ it('comments on relevant github issues', async () => {
               },
             },
           },
-        }),
-      )
+        },
+      })
     }),
     githubLatestReleaseHandler,
-    rest.post<never, never, GitHubRelease>(
+    http.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
-      (req, res, ctx) => {
-        return res(
-          ctx.status(201),
-          ctx.json({
+      () => {
+        return HttpResponse.json(
+          {
             tag_name: 'v1.0.0',
             html_url: '/releases/1',
-          }),
+          },
+          { status: 201 },
         )
       },
     ),
-    rest.get(
-      'https://api.github.com/repos/:owner/:repo/issues/:id',
-      (req, res, ctx) => {
-        return res(ctx.json({}))
-      },
-    ),
-    rest.post<{ body: string }>(
+    http.get('https://api.github.com/repos/:owner/:repo/issues/:id', () => {
+      return HttpResponse.json({})
+    }),
+    http.post<{ id: string }, string>(
       'https://api.github.com/repos/:owner/:repo/issues/:id/comments',
-      (req, res, ctx) => {
-        commentsCreated.set(req.params.id as string, req.body.body)
-        return res(ctx.status(201))
+      async ({ params, request }) => {
+        commentsCreated.set(params.id, await request.text())
+        return new HttpResponse(null, { status: 201 })
       },
     ),
   )
@@ -286,32 +289,23 @@ it('comments on relevant github issues', async () => {
 it('supports dry-run mode', async () => {
   const repo = await createRepository('dry-mode')
 
-  const getReleaseContributorsResolver = jest.fn<
-    ReturnType<ResponseResolver>,
-    Parameters<ResponseResolver>
-  >((req, res, ctx) => {
-    return res(ctx.status(500))
+  const getReleaseContributorsResolver = vi.fn<GraphQLResponseResolver>(() => {
+    return new HttpResponse(null, { status: 500 })
   })
-  const createGitHubReleaseResolver = jest.fn<
-    ReturnType<ResponseResolver>,
-    Parameters<ResponseResolver>
-  >((req, res, ctx) => {
-    return res(ctx.status(500))
+  const createGitHubReleaseResolver = vi.fn<HttpResponseResolver>(() => {
+    return new HttpResponse(null, { status: 500 })
   })
 
   api.use(
     graphql.query('GetCommitAuthors', getReleaseContributorsResolver),
     githubLatestReleaseHandler,
-    rest.post<never, never, GitHubRelease>(
+    http.post(
       'https://api.github.com/repos/:owner/:repo/releases',
       createGitHubReleaseResolver,
     ),
-    rest.get(
-      'https://api.github.com/repos/:owner/:repo/issues/:id',
-      (req, res, ctx) => {
-        return res(ctx.json({}))
-      },
-    ),
+    http.get('https://api.github.com/repos/:owner/:repo/issues/:id', () => {
+      return HttpResponse.json({})
+    }),
   )
 
   await repo.fs.create({
@@ -362,9 +356,7 @@ it('supports dry-run mode', async () => {
   expect(log.warn).toHaveBeenCalledWith(
     'skip executing publishing script in dry-run mode',
   )
-  expect(
-    fileSystem.existsSync(repo.fs.resolve('release.script.artifact')),
-  ).toBe(false)
+  expect(fs.existsSync(repo.fs.resolve('release.script.artifact'))).toBe(false)
 
   // No release commit must be created.
   expect(log.warn).toHaveBeenCalledWith(
@@ -407,19 +399,19 @@ it('streams the release script stdout to the main process', async () => {
   const repo = await createRepository('stream-stdout')
 
   api.use(
-    graphql.query('GetCommitAuthors', (req, res, ctx) => {
-      return res(ctx.data({}))
+    graphql.query('GetCommitAuthors', () => {
+      return HttpResponse.json({ data: {} })
     }),
     githubLatestReleaseHandler,
-    rest.post<never, never, GitHubRelease>(
+    http.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
-      (req, res, ctx) => {
-        return res(
-          ctx.status(201),
-          ctx.json({
+      () => {
+        return HttpResponse.json(
+          {
             tag_name: 'v1.0.0',
             html_url: '/releases/1',
-          }),
+          },
+          { status: 201 },
         )
       },
     ),
@@ -469,19 +461,19 @@ it('streams the release script stderr to the main process', async () => {
   const repo = await createRepository('stream-stderr')
 
   api.use(
-    graphql.query('GetCommitAuthors', (req, res, ctx) => {
-      return res(ctx.data({}))
+    graphql.query('GetCommitAuthors', () => {
+      return HttpResponse.json({ data: {} })
     }),
     githubLatestReleaseHandler,
-    rest.post<never, never, GitHubRelease>(
+    http.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
-      (req, res, ctx) => {
-        return res(
-          ctx.status(201),
-          ctx.json({
+      () => {
+        return HttpResponse.json(
+          {
             tag_name: 'v1.0.0',
             html_url: '/releases/1',
-          }),
+          },
+          { status: 201 },
         )
       },
     ),
@@ -536,19 +528,19 @@ it('only pushes the newly created release tag to the remote', async () => {
   })
 
   api.use(
-    graphql.query('GetCommitAuthors', (req, res, ctx) => {
-      return res(ctx.data({}))
+    graphql.query('GetCommitAuthors', () => {
+      return HttpResponse.json({ data: {} })
     }),
     githubLatestReleaseHandler,
-    rest.post<never, never, GitHubRelease>(
+    http.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
-      (req, res, ctx) => {
-        return res(
-          ctx.status(201),
-          ctx.json({
+      () => {
+        return HttpResponse.json(
+          {
             tag_name: 'v1.0.0',
             html_url: '/releases/1',
-          }),
+          },
+          { status: 201 },
         )
       },
     ),
@@ -585,19 +577,19 @@ it('treats breaking changes as minor versions when "prerelease" is set to true',
   const repo = await createRepository('prerelease-major-as-minor')
 
   api.use(
-    graphql.query('GetCommitAuthors', (req, res, ctx) => {
-      return res(ctx.data({}))
+    graphql.query('GetCommitAuthors', () => {
+      return HttpResponse.json({ data: {} })
     }),
     githubLatestReleaseHandler,
-    rest.post<never, never, GitHubRelease>(
+    http.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
-      (req, res, ctx) => {
-        return res(
-          ctx.status(201),
-          ctx.json({
+      () => {
+        return HttpResponse.json(
+          {
             tag_name: 'v1.0.0',
             html_url: '/releases/1',
-          }),
+          },
+          { status: 201 },
         )
       },
     ),
@@ -663,19 +655,19 @@ it('treats minor bumps as minor versions when "prerelease" is set to true', asyn
   const repo = await createRepository('prerelease-major-as-minor')
 
   api.use(
-    graphql.query('GetCommitAuthors', (req, res, ctx) => {
-      return res(ctx.data({}))
+    graphql.query('GetCommitAuthors', () => {
+      return HttpResponse.json({ data: {} })
     }),
     githubLatestReleaseHandler,
-    rest.post<never, never, GitHubRelease>(
+    http.post<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases',
-      (req, res, ctx) => {
-        return res(
-          ctx.status(201),
-          ctx.json({
+      () => {
+        return HttpResponse.json(
+          {
             tag_name: 'v1.0.0',
             html_url: '/releases/1',
-          }),
+          },
+          { status: 201 },
         )
       },
     ),

@@ -1,8 +1,8 @@
 import fetch from 'node-fetch'
 import { format } from 'outvariant'
-import { getInfo } from '../../utils/git/getInfo'
-import { ParsedCommitWithHash } from '../git/parseCommits'
-import { log } from '../../logger'
+import { getInfo } from '#/src/utils/git/getInfo.js'
+import type { ParsedCommitWithHash } from '#/src/utils/git/parseCommits.js'
+import { log } from '#/src/logger.js'
 
 export interface GetCommitAuthorsQuery {
   repository: {

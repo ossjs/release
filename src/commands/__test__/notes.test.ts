@@ -1,45 +1,21 @@
-import { MockedRequest, ResponseResolver, rest, RestContext } from 'msw'
-import { Notes } from '../notes'
-import { log } from '../../logger'
-import { commit } from '../../utils/git/commit'
-import { testEnvironment } from '../../../test/env'
-import { execAsync } from '../../utils/execAsync'
-import { GitHubRelease } from '../../utils/github/getGitHubRelease'
+import { http, HttpResponse, type HttpResponseResolver } from 'msw'
+import { Notes } from '#/src/commands/notes.js'
+import { log } from '#/src/logger.js'
+import { commit } from '#/src/utils/git/commit.js'
+import { testEnvironment } from '#/test/env.js'
+import { execAsync } from '#/src/utils/execAsync.js'
+import { type GitHubRelease } from '#/src/utils/github/getGitHubRelease.js'
 
 const { setup, reset, cleanup, api, createRepository } = testEnvironment({
   fileSystemPath: 'notes',
 })
 
-let gitHubReleaseHandler: jest.Mock = jest.fn<
-  ReturnType<ResponseResolver>,
-  Parameters<ResponseResolver<MockedRequest, RestContext>>
->((req, res, ctx) => {
-  return res(
-    ctx.status(201),
-    ctx.json({
-      html_url: '/releases/1',
-    }),
-  )
+const gitHubReleaseResolver = vi.fn<HttpResponseResolver>(() => {
+  return HttpResponse.json({ html_url: '/releases/1' }, { status: 201 })
 })
-
-const githubLatestReleaseHandler = rest.get<never, never, GitHubRelease>(
-  `https://api.github.com/repos/:owner/:name/releases/latest`,
-  (req, res, ctx) => {
-    return res(ctx.status(404))
-  },
-)
 
 beforeAll(async () => {
   await setup()
-})
-
-beforeEach(() => {
-  api.use(
-    rest.post(
-      'https://api.github.com/repos/:owner/:repo/releases',
-      gitHubReleaseHandler,
-    ),
-  )
 })
 
 afterEach(async () => {
@@ -54,11 +30,20 @@ it('creates a GitHub release for a past release', async () => {
   await createRepository('past-release')
 
   api.use(
-    githubLatestReleaseHandler,
-    rest.get<never, never, GitHubRelease>(
+    http.post(
+      'https://api.github.com/repos/:owner/:repo/releases',
+      gitHubReleaseResolver,
+    ),
+    http.get<never, never, GitHubRelease>(
+      `https://api.github.com/repos/:owner/:name/releases/latest`,
+      () => {
+        return new HttpResponse(null, { status: 404 })
+      },
+    ),
+    http.get<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases/tags/:tag',
-      (req, res, ctx) => {
-        return res(ctx.status(404))
+      () => {
+        return new HttpResponse(null, { status: 404 })
       },
     ),
   )
@@ -144,7 +129,7 @@ it('creates a GitHub release for a past release', async () => {
 - relevant fix (${fixCommit.hash})`)
 
   // Must create a new GitHub release.
-  expect(gitHubReleaseHandler).toHaveBeenCalledTimes(1)
+  expect(gitHubReleaseResolver).toHaveBeenCalledTimes(1)
   expect(log.info).toHaveBeenCalledWith('created GitHub release: /releases/1')
 })
 
@@ -152,16 +137,23 @@ it('skips creating a GitHub release if the given release already exists', async 
   await createRepository('skip-if-exists')
 
   api.use(
-    githubLatestReleaseHandler,
-    rest.get<never, never, GitHubRelease>(
+    http.post(
+      'https://api.github.com/repos/:owner/:repo/releases',
+      gitHubReleaseResolver,
+    ),
+    http.get<never, never, GitHubRelease>(
+      `https://api.github.com/repos/:owner/:name/releases/latest`,
+      () => {
+        return new HttpResponse(null, { status: 404 })
+      },
+    ),
+    http.get<never, never, GitHubRelease>(
       'https://api.github.com/repos/:owner/:repo/releases/tags/:tag',
-      (req, res, ctx) => {
-        return res(
-          ctx.json({
-            tag_name: 'v1.0.0',
-            html_url: '/releases/1',
-          }),
-        )
+      () => {
+        return HttpResponse.json({
+          tag_name: 'v1.0.0',
+          html_url: '/releases/1',
+        })
       },
     ),
   )

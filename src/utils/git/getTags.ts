@@ -1,4 +1,4 @@
-import { execAsync } from '../execAsync'
+import { execAsync } from '#/src/utils/execAsync.js'
 
 /**
  * Return the list of tags present on the current Git branch.

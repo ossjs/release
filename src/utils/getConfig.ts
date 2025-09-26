@@ -1,5 +1,5 @@
 import { invariant } from 'outvariant'
-import * as path from 'path'
+import * as path from 'node:path'
 
 export interface Config {
   profiles: Array<ReleaseProfile>

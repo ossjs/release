@@ -1,6 +1,6 @@
-import { log } from './logger'
 import type { BuilderCallback } from 'yargs'
-import type { Config } from './utils/getConfig'
+import { log } from '#/src/logger.js'
+import type { Config } from '#/src/utils/getConfig.js'
 
 export interface DefaultArgv {
   _: (number | string)[]

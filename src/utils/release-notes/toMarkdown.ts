@@ -1,10 +1,10 @@
-import { ReleaseContext } from '../createContext'
-import { formatDate } from '../formatDate'
-import {
+import type { ReleaseContext } from '#/src/utils/createContext.js'
+import { formatDate } from '#/src/utils/formatDate.js'
+import type {
   ReleaseNoteCommit,
   ReleaseNotes,
   ReleaseNoteType,
-} from './getReleaseNotes'
+} from '#/src/utils/release-notes/getReleaseNotes.js'
 
 /**
  * Generate a Markdown string for the given release notes.

@@ -1,6 +1,6 @@
 import { getCommits } from '../getCommits'
-import { testEnvironment } from '../../../../test/env'
-import { execAsync } from '../../execAsync'
+import { testEnvironment } from '#/test/env.js'
+import { execAsync } from '#/src/utils/execAsync.js'
 
 const { setup, reset, cleanup, createRepository } = testEnvironment({
   fileSystemPath: 'get-commits',

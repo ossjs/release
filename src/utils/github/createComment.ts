@@ -1,6 +1,6 @@
 import fetch from 'node-fetch'
 import { invariant } from 'outvariant'
-import { getInfo } from '../git/getInfo'
+import { getInfo } from '../git/getInfo.js'
 
 export async function createComment(
   issueId: string,

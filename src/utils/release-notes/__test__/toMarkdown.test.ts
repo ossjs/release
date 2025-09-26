@@ -1,11 +1,14 @@
-import { mockCommit, mockRepo } from '../../../../test/fixtures'
-import { createContext } from '../../createContext'
-import { getReleaseNotes } from '../getReleaseNotes'
-import { parseCommits } from '../../git/parseCommits'
-import { toMarkdown, printAuthors } from '../toMarkdown'
-import { api } from '../../../../test/env'
-import { graphql } from 'msw'
-import { GetCommitAuthorsQuery } from '../../github/getCommitAuthors'
+import { graphql, HttpResponse } from 'msw'
+import { mockCommit, mockRepo } from '#/test/fixtures.js'
+import { api } from '#/test/env.js'
+import { createContext } from '#/src/utils/createContext.js'
+import { getReleaseNotes } from '#/src/utils/release-notes/getReleaseNotes.js'
+import { parseCommits } from '#/src/utils/git/parseCommits.js'
+import {
+  toMarkdown,
+  printAuthors,
+} from '#/src/utils/release-notes/toMarkdown.js'
+import type { GetCommitAuthorsQuery } from '#/src/utils/github/getCommitAuthors.js'
 
 /**
  * toMarkdown.
@@ -24,10 +27,9 @@ describe(toMarkdown, () => {
     api.use(
       graphql.query<GetCommitAuthorsQuery, { pullRequestId: string }>(
         'GetCommitAuthors',
-        (req, res, ctx) => {
-          req.variables.pullRequestId
-          return res(
-            ctx.data({
+        () => {
+          return HttpResponse.json({
+            data: {
               repository: {
                 pullRequest: {
                   url: '#1',
@@ -35,8 +37,8 @@ describe(toMarkdown, () => {
                   commits: { nodes: [] },
                 },
               },
-            }),
-          )
+            },
+          })
         },
       ),
     )
@@ -148,15 +150,14 @@ Please use X instead of Y from now on.
     api.use(
       graphql.query<GetCommitAuthorsQuery, { pullRequestId: string }>(
         'GetCommitAuthors',
-        (req, res, ctx) => {
-          req.variables.pullRequestId
-          return res(
-            ctx.data({
+        ({ variables }) => {
+          return HttpResponse.json({
+            data: {
               repository: {
-                pullRequest: pullRequests[req.variables.pullRequestId],
+                pullRequest: pullRequests[variables.pullRequestId],
               },
-            }),
-          )
+            },
+          })
         },
       ),
     )

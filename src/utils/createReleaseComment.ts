@@ -1,5 +1,5 @@
-import type { ReleaseContext } from './createContext'
-import { readPackageJson } from './readPackageJson'
+import type { ReleaseContext } from './createContext.js'
+import { readPackageJson } from './readPackageJson.js'
 
 export interface ReleaseCommentInput {
   context: ReleaseContext

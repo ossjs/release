@@ -1,6 +1,6 @@
-import { testEnvironment } from '../../../../test/env'
-import { execAsync } from '../../execAsync'
-import { createTag } from '../createTag'
+import { testEnvironment } from '#/test/env.js'
+import { execAsync } from '#/src/utils/execAsync.js'
+import { createTag } from '#/src/utils/git/createTag.js'
 
 const { setup, reset, cleanup, createRepository } = testEnvironment({
   fileSystemPath: 'create-tag',
@@ -25,7 +25,7 @@ it('creates a new tag', async () => {
 it('does not create a tag when it already exists', async () => {
   await createRepository('existing-tag')
 
-  jest.spyOn(console, 'error').mockImplementation()
+  vi.spyOn(console, 'error').mockImplementation(() => void 0)
   await execAsync('git tag 1.0.0')
   await expect(createTag('1.0.0')).rejects.toThrow(
     `fatal: tag '1.0.0' already exists`,

@@ -1,7 +1,7 @@
 import type { Commit } from 'git-log-parser'
-import { execAsync } from '../execAsync'
-import { getCommit } from './getCommit'
-import { parseCommits, ParsedCommitWithHash } from './parseCommits'
+import { execAsync } from '#/src/utils/execAsync.js'
+import { getCommit } from './getCommit.js'
+import { parseCommits, type ParsedCommitWithHash } from './parseCommits.js'
 
 export interface CommitOptions {
   message: string

@@ -1,6 +1,6 @@
 import { createTeardown } from 'fs-teardown'
-import { execAsync } from '../../execAsync'
-import { getInfo, GitInfo } from '../getInfo'
+import { execAsync } from '#/src/utils/execAsync.js'
+import { getInfo, type GitInfo } from '#/src/utils/git/getInfo.js'
 
 const fsMock = createTeardown({
   rootDir: 'tarm/get-tags',
@@ -15,7 +15,7 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   await fsMock.reset()
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
 })
 
 afterAll(async () => {

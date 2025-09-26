@@ -1,17 +1,21 @@
-import * as path from 'path'
-import { rest } from 'msw'
-import { SetupServer, setupServer } from 'msw/node'
-import { createTeardown, TeardownApi } from 'fs-teardown'
-import { log } from '../src/logger'
-import { initGit, createGitProvider } from './utils'
-import { execAsync } from '../src/utils/execAsync'
-import { requiredGitHubTokenScopes } from '../src/utils/github/validateAccessToken'
+import * as path from 'node:path'
+import { http, HttpResponse } from 'msw'
+import { type SetupServer, setupServer } from 'msw/node'
+import { createTeardown, type TeardownApi } from 'fs-teardown'
+import { log } from '#/src/logger.js'
+import { initGit, createGitProvider } from '#/test/utils.js'
+import { execAsync } from '#/src/utils/execAsync.js'
+import { requiredGitHubTokenScopes } from '#/src/utils/github/validateAccessToken.js'
 
 export const api = setupServer(
-  rest.get('https://api.github.com', (req, res, ctx) => {
+  http.get('https://api.github.com', () => {
     // Treat "GITHUB_TOKEN" environmental variable value during tests
     // as a valid GitHub personal access token with sufficient permission scopes.
-    return res(ctx.set('x-oauth-scopes', requiredGitHubTokenScopes.join(', ')))
+    return new HttpResponse(null, {
+      headers: {
+        'x-oauth-scopes': requiredGitHubTokenScopes.join(', '),
+      },
+    })
   }),
 )
 
@@ -63,12 +67,12 @@ export function testEnvironment(
   return {
     api,
     async setup() {
-      jest.spyOn(process, 'exit')
-      jest.spyOn(process.stdout, 'write').mockImplementation()
-      jest.spyOn(process.stderr, 'write').mockImplementation()
-      jest.spyOn(log, 'info').mockImplementation()
-      jest.spyOn(log, 'warn').mockImplementation()
-      jest.spyOn(log, 'error').mockImplementation()
+      vi.spyOn(process, 'exit').mockImplementation((() => {}) as any)
+      vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
+      vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
+      vi.spyOn(log, 'info').mockImplementation()
+      vi.spyOn(log, 'warn').mockImplementation()
+      vi.spyOn(log, 'error').mockImplementation()
 
       execAsync.mockContext({
         cwd: fs.resolve(),
@@ -77,12 +81,13 @@ export function testEnvironment(
       await fs.prepare()
     },
     async reset() {
-      jest.resetAllMocks()
+      api.resetHandlers()
+      vi.clearAllMocks()
       await resolveSideEffects()
       await fs.reset()
     },
     async cleanup() {
-      jest.restoreAllMocks()
+      vi.restoreAllMocks()
       await resolveSideEffects()
       await fs.cleanup()
     },

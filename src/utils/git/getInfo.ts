@@ -1,5 +1,5 @@
 import { invariant } from 'outvariant'
-import { execAsync } from '../execAsync'
+import { execAsync } from '#/src/utils/execAsync.js'
 
 export interface GitInfo {
   owner: string

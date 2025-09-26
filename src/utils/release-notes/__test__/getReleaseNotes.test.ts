@@ -1,12 +1,12 @@
+import { graphql, HttpResponse } from 'msw'
 import {
   groupCommitsByReleaseType,
   injectReleaseContributors,
-} from '../getReleaseNotes'
-import { mockCommit } from '../../../../test/fixtures'
-import { parseCommits } from '../../git/parseCommits'
-import { testEnvironment } from '../../../../test/env'
-import { graphql } from 'msw'
-import { GetCommitAuthorsQuery } from '../../github/getCommitAuthors'
+} from '#/src/utils/release-notes/getReleaseNotes.js'
+import { mockCommit } from '#/test/fixtures.js'
+import { testEnvironment } from '#/test/env.js'
+import { parseCommits } from '#/src/utils/git/parseCommits.js'
+import { type GetCommitAuthorsQuery } from '#/src/utils/github/getCommitAuthors.js'
 
 /**
  * groupCommitsByReleaseType.
@@ -139,14 +139,14 @@ describe(injectReleaseContributors, () => {
     api.use(
       graphql.query<GetCommitAuthorsQuery, { pullRequestId: string }>(
         'GetCommitAuthors',
-        (req, res, ctx) => {
-          return res(
-            ctx.data({
+        ({ variables }) => {
+          return HttpResponse.json({
+            data: {
               repository: {
-                pullRequest: pullRequests[req.variables.pullRequestId],
+                pullRequest: pullRequests[variables.pullRequestId],
               },
-            }),
-          )
+            },
+          })
         },
       ),
     )

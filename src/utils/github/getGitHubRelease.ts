@@ -1,6 +1,6 @@
 import { invariant } from 'outvariant'
 import fetch from 'node-fetch'
-import { getInfo } from '../git/getInfo'
+import { getInfo } from '#/src/utils/git/getInfo.js'
 
 export interface GitHubRelease {
   tag_name: string

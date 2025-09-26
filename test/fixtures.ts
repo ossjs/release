@@ -1,7 +1,7 @@
 import type { Commit } from 'git-log-parser'
-import type { Config } from '../src/utils/getConfig'
-import type { GitInfo } from '../src/utils/git/getInfo'
-import { ParsedCommitWithHash } from '../src/utils/git/parseCommits'
+import type { Config } from '#/src/utils/getConfig.js'
+import type { GitInfo } from '#/src/utils/git/getInfo.js'
+import type { ParsedCommitWithHash } from '#/src/utils/git/parseCommits.js'
 
 export function mockConfig(config: Partial<Config> = {}): Config {
   return {

@@ -1,6 +1,6 @@
 import * as getStream from 'get-stream'
 import * as gitLogParser from 'git-log-parser'
-import { execAsync } from '../execAsync'
+import { execAsync } from '#/src/utils/execAsync.js'
 
 interface GetCommitsOptions {
   since?: string

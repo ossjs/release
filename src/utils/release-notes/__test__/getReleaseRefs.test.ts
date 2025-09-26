@@ -1,8 +1,11 @@
-import { rest, ResponseResolver, RestContext, RestRequest } from 'msw'
-import { getReleaseRefs, IssueOrPullRequest } from '../getReleaseRefs'
-import { parseCommits } from '../../git/parseCommits'
-import { testEnvironment } from '../../../../test/env'
-import { mockCommit } from '../../../../test/fixtures'
+import { http, HttpResponse, type HttpResponseResolver } from 'msw'
+import {
+  getReleaseRefs,
+  type IssueOrPullRequest,
+} from '#/src/utils/release-notes/getReleaseRefs.js'
+import { parseCommits } from '#/src/utils/git/parseCommits.js'
+import { testEnvironment } from '#/test/env.js'
+import { mockCommit } from '#/test/fixtures.js'
 
 type IssueMap = Record<string, IssueOrPullRequest>
 
@@ -22,17 +25,17 @@ afterAll(async () => {
   await cleanup()
 })
 
-function issueById(
+function gitHubIssueResolver(
   issues: IssueMap,
-): ResponseResolver<RestRequest<never, { id: string }>, RestContext> {
-  return (req, res, ctx) => {
-    const issue = issues[req.params.id]
+): HttpResponseResolver<{ id: string }> {
+  return ({ params }) => {
+    const issue = issues[params.id]
 
     if (!issue) {
-      return res(ctx.status(404))
+      return new HttpResponse(null, { status: 404 })
     }
 
-    return res(ctx.json(issue))
+    return HttpResponse.json(issue)
   }
 }
 
@@ -63,9 +66,9 @@ This pull request references issues in its description.
   }
 
   api.use(
-    rest.get(
+    http.get(
       'https://api.github.com/repos/:owner/:repo/issues/:id',
-      issueById(issues),
+      gitHubIssueResolver(issues),
     ),
   )
 
@@ -103,9 +106,9 @@ it('handles references without body', async () => {
   }
 
   api.use(
-    rest.get(
+    http.get(
       'https://api.github.com/repos/:owner/:repo/issues/:id',
-      issueById(issues),
+      gitHubIssueResolver(issues),
     ),
   )
 

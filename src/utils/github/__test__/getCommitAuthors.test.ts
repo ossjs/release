@@ -1,9 +1,9 @@
-import { graphql } from 'msw'
-import { getCommitAuthors } from '../getCommitAuthors'
-import { log } from '../../../logger'
-import { mockCommit } from '../../../../test/fixtures'
-import { parseCommits } from '../../git/parseCommits'
-import { testEnvironment } from '../../../../test/env'
+import { graphql, HttpResponse } from 'msw'
+import { getCommitAuthors } from '#/src/utils/github/getCommitAuthors.js'
+import { log } from '#/src/logger.js'
+import { parseCommits } from '#/src/utils/git/parseCommits.js'
+import { mockCommit } from '#/test/fixtures.js'
+import { testEnvironment } from '#/test/env.js'
 
 const { setup, reset, cleanup, api } = testEnvironment({
   fileSystemPath: 'get-commit-authors',
@@ -23,9 +23,9 @@ afterAll(async () => {
 
 it('returns github handle for the pull request author if they are the only contributor', async () => {
   api.use(
-    graphql.query('GetCommitAuthors', (req, res, ctx) => {
-      return res(
-        ctx.data({
+    graphql.query('GetCommitAuthors', () => {
+      return HttpResponse.json({
+        data: {
           repository: {
             pullRequest: {
               author: { login: 'octocat' },
@@ -46,8 +46,8 @@ it('returns github handle for the pull request author if they are the only contr
               },
             },
           },
-        }),
-      )
+        },
+      })
     }),
   )
 
@@ -64,9 +64,9 @@ it('returns github handle for the pull request author if they are the only contr
 
 it('returns github handles for all contributors to the release commit', async () => {
   api.use(
-    graphql.query('GetCommitAuthors', (req, res, ctx) => {
-      return res(
-        ctx.data({
+    graphql.query('GetCommitAuthors', () => {
+      return HttpResponse.json({
+        data: {
           repository: {
             pullRequest: {
               author: { login: 'octocat' },
@@ -115,8 +115,8 @@ it('returns github handles for all contributors to the release commit', async ()
               },
             },
           },
-        }),
-      )
+        },
+      })
     }),
   )
   const commits = await parseCommits([
@@ -145,8 +145,8 @@ it('returns an empty set for a commit without references', async () => {
 it('forwards github graphql errors', async () => {
   const errors = [{ message: 'one' }, { message: 'two' }]
   api.use(
-    graphql.query('GetCommitAuthors', (req, res, ctx) => {
-      return res(ctx.errors(errors))
+    graphql.query('GetCommitAuthors', () => {
+      return HttpResponse.json({ errors })
     }),
   )
   const commits = await parseCommits([
@@ -166,8 +166,8 @@ it('forwards github graphql errors', async () => {
 
 it('forwards github server errors', async () => {
   api.use(
-    graphql.query('GetCommitAuthors', (req, res, ctx) => {
-      return res(ctx.status(401))
+    graphql.query('GetCommitAuthors', () => {
+      return HttpResponse.json(null, { status: 401 })
     }),
   )
   const commits = await parseCommits([

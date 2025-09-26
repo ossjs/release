@@ -1,5 +1,5 @@
+import { type ChildProcess, type ExecOptions, exec } from 'node:child_process'
 import { DeferredPromise } from '@open-draft/deferred-promise'
-import { type ChildProcess, type ExecOptions, exec } from 'child_process'
 
 export type ExecAsyncFn = {
   (
@@ -43,8 +43,8 @@ export const execAsync = <ExecAsyncFn>((command, options = {}) => {
       }
 
       commandPromise.resolve({
-        stdout,
-        stderr,
+        stdout: stdout.toString(),
+        stderr: stderr.toString(),
       })
     },
   )

@@ -1,5 +1,5 @@
 declare module 'git-log-parser' {
-  import { SpawnOptions } from 'child_process'
+  import { SpawnOptions } from 'node:child_process'
 
   export const fields: Record<string, any>
 
@@ -8,7 +8,7 @@ declare module 'git-log-parser' {
       [option: string]: any
       _?: string
     },
-    options?: SpawnOptions
+    options?: SpawnOptions,
   ): NodeJS.ReadableStream
 
   export interface Commit {

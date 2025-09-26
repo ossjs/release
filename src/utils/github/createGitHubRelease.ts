@@ -1,9 +1,9 @@
 import fetch from 'node-fetch'
 import { format } from 'outvariant'
 import { lt } from 'semver'
-import type { ReleaseContext } from '../createContext'
-import { getGitHubRelease, type GitHubRelease } from './getGitHubRelease'
-import { log } from '../../logger'
+import type { ReleaseContext } from '../createContext.js'
+import { getGitHubRelease, type GitHubRelease } from './getGitHubRelease.js'
+import { log } from '../../logger.js'
 
 /**
  * Create a new GitHub release with the given release notes.
