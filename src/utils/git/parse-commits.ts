@@ -2,8 +2,11 @@ import { PassThrough } from 'node:stream'
 import { invariant } from 'outvariant'
 import { DeferredPromise } from '@open-draft/deferred-promise'
 import type { Commit } from 'git-log-parser'
-import parseCommit from 'conventional-commits-parser'
-import type { Commit as ParsedCommit } from 'conventional-commits-parser'
+import {
+  CommitParser,
+  parseCommitsStream,
+  type Commit as ParsedCommit,
+} from 'conventional-commits-parser'
 
 export type ParsedCommitWithHash = ParsedCommit & {
   hash: string
@@ -26,7 +29,7 @@ export async function parseCommits(
 
   through.end()
 
-  const commitParser = parseCommit()
+  const commitParser = new CommitParser()
 
   const parsingStreamPromise = new DeferredPromise<
     Array<ParsedCommitWithHash>
@@ -38,7 +41,7 @@ export async function parseCommits(
   const parsedCommits: Array<ParsedCommitWithHash> = []
 
   through
-    .pipe(commitParser)
+    .pipe(parseCommitsStream())
     .on('error', (error) => parsingStreamPromise.reject(error))
     .on('data', (parsedCommit: ParsedCommit) => {
       let resolvedParsingResult = parsedCommit
@@ -54,7 +57,7 @@ export async function parseCommits(
           COMMIT_HEADER_APPENDIX_REGEXP,
           '$1$3',
         )
-        resolvedParsingResult = parseCommit.sync(
+        resolvedParsingResult = commitParser.parse(
           joinCommit(headerWithoutAppendix, parsedCommit.body),
         )
         typeAppendix = '!'

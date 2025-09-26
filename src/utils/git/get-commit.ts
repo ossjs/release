@@ -1,4 +1,4 @@
-import * as getStream from 'get-stream'
+import { array } from 'get-stream'
 import gitLogParser, { type Commit } from 'git-log-parser'
 import { execAsync } from '#/src/utils/exec-async.js'
 
@@ -8,7 +8,7 @@ export async function getCommit(hash: string): Promise<Commit | undefined> {
     message: 'B',
   })
 
-  const result = await getStream.array<Commit>(
+  const result = await array<Commit>(
     gitLogParser.parse(
       {
         _: hash,

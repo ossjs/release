@@ -1,4 +1,4 @@
-import * as getStream from 'get-stream'
+import { array } from 'get-stream'
 import * as gitLogParser from 'git-log-parser'
 import { execAsync } from '#/src/utils/exec-async.js'
 
@@ -24,7 +24,7 @@ export function getCommits({
   // When only the "until" commit is specified, skip the first commit.
   const skip = range === until && until !== 'HEAD' ? 1 : undefined
 
-  return getStream.array<gitLogParser.Commit>(
+  return array<gitLogParser.Commit>(
     gitLogParser.parse(
       {
         _: range,
