@@ -454,6 +454,7 @@ export class Publish extends Command<PublishArgv> {
     const referencedIssueIds = await getReleaseRefs(commits)
     const issuesCount = referencedIssueIds.size
     const releaseCommentText = createReleaseComment({
+      profile: this.profile.name,
       context: this.context,
       releaseUrl,
     })
