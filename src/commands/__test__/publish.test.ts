@@ -420,6 +420,7 @@ it('streams the release script stdout to the main process', async () => {
   await repo.fs.create({
     'package.json': JSON.stringify({
       name: 'publish-stream',
+      version: '0.0.0',
     }),
     'stream-stdout.js': `
 console.log('hello')
