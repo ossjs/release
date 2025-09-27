@@ -79,6 +79,7 @@ Create a `release.config.json` file at the root of your project. Open the newly 
 ```js
 // release.config.json
 {
+  "$schema": "./node_modules/@ossjs/release/schema.json",
   "profiles": [
     {
       "name": "latest",
@@ -312,6 +313,7 @@ Running `yarn publish` will prompt you for the next release version. Use the `--
 ```js
 // release.config.json
 {
+  "$schema": "./node_modules/@ossjs/release/schema.json",
   "profiles": [
     {
       "name": "latest",
@@ -337,6 +339,7 @@ Yarn also doesn't seem to respect the `NODE_AUTH_TOKEN` environment variable. Pl
 ```js
 // release.config.json
 {
+  "$schema": "./node_modules/@ossjs/release/schema.json",
   "profiles": [
     {
       "name": "latest",
@@ -355,6 +358,7 @@ Leverage GitHub Actions and multiple Release configurations to release different
 ```js
 // release.config.json
 {
+  "$schema": "./node_modules/@ossjs/release/schema.json",
   "profiles": [
     {
       "name": "latest",
