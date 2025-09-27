@@ -9,22 +9,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18.14
-
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 7.12
+          node-version: 24
+          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install
 
       - name: Build
         run: pnpm build
+
+      - name: Lint
+        run: pnpm lint
 
       - name: Tests
         run: pnpm test

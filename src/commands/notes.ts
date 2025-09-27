@@ -1,22 +1,25 @@
 import { format, invariant } from 'outvariant'
 import type { BuilderCallback } from 'yargs'
-import type { ReleaseContext } from '../utils/createContext'
-import { demandGitHubToken } from '../utils/env'
-import { createGitHubRelease } from '../utils/github/createGitHubRelease'
-import { Command } from '../Command'
-import { getInfo } from '../utils/git/getInfo'
-import { parseCommits, ParsedCommitWithHash } from '../utils/git/parseCommits'
-import { getReleaseNotes } from '../utils/release-notes/getReleaseNotes'
-import { toMarkdown } from '../utils/release-notes/toMarkdown'
-import { getCommits } from '../utils/git/getCommits'
-import { getTag } from '../utils/git/getTag'
-import { getCommit } from '../utils/git/getCommit'
-import { byReleaseVersion } from '../utils/git/getLatestRelease'
-import { getTags } from '../utils/git/getTags'
+import type { ReleaseContext } from '#/src/utils/create-context.js'
+import { demandGitHubToken } from '#/src/utils/env.js'
+import { createGitHubRelease } from '#/src/utils/github/create-github-release.js'
+import { Command } from '../Command.js'
+import { getInfo } from '#/src/utils/git/get-info.js'
+import {
+  parseCommits,
+  type ParsedCommitWithHash,
+} from '#/src/utils/git/parse-commits.js'
+import { getReleaseNotes } from '#/src/utils/release-notes/get-release-notes.js'
+import { toMarkdown } from '#/src/utils/release-notes/to-markdown.js'
+import { getCommits } from '#/src/utils/git/get-commits.js'
+import { getTag } from '#/src/utils/git/get-tag.js'
+import { getCommit } from '#/src/utils/git/get-commit.js'
+import { byReleaseVersion } from '#/src/utils/git/get-latest-release.js'
+import { getTags } from '#/src/utils/git/get-tags.js'
 import {
   getGitHubRelease,
-  GitHubRelease,
-} from '../utils/github/getGitHubRelease'
+  type GitHubRelease,
+} from '#/src/utils/github/get-github-release.js'
 
 interface Argv {
   _: [path: string, tag: string]

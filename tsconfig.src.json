@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.base.json",
+  "include": ["./typings", "./src"],
+  "exclude": ["node_modules", "**/*.test.ts"],
+  "compilerOptions": {
+    "composite": true,
+    "target": "esnext",
+    "module": "nodenext",
+    "sourceMap": true,
+    "outDir": "./bin/build"
+  }
+}

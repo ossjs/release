@@ -1,27 +1,33 @@
-import { until } from '@open-draft/until'
+import { until } from 'until-async'
 import { invariant, format } from 'outvariant'
-import { BuilderCallback } from 'yargs'
-import { Command } from '../Command'
-import { createContext, ReleaseContext } from '../utils/createContext'
-import { getInfo } from '../utils/git/getInfo'
-import { getNextReleaseType } from '../utils/getNextReleaseType'
-import { getNextVersion } from '../utils/getNextVersion'
-import { getCommits } from '../utils/git/getCommits'
-import { getCurrentBranch } from '../utils/git/getCurrentBranch'
-import { getLatestRelease } from '../utils/git/getLatestRelease'
-import { bumpPackageJson } from '../utils/bumpPackageJson'
-import { getTags } from '../utils/git/getTags'
-import { execAsync } from '../utils/execAsync'
-import { commit } from '../utils/git/commit'
-import { createTag } from '../utils/git/createTag'
-import { push } from '../utils/git/push'
-import { getReleaseRefs } from '../utils/release-notes/getReleaseRefs'
-import { parseCommits, ParsedCommitWithHash } from '../utils/git/parseCommits'
-import { createComment } from '../utils/github/createComment'
-import { createReleaseComment } from '../utils/createReleaseComment'
-import { demandGitHubToken, demandNpmToken } from '../utils/env'
-import { Notes } from './notes'
-import { ReleaseProfile } from '../utils/getConfig'
+import { type BuilderCallback } from 'yargs'
+import { Command } from '#/src/Command.js'
+import {
+  createContext,
+  type ReleaseContext,
+} from '#/src/utils/create-context.js'
+import { getInfo } from '#/src/utils/git/get-info.js'
+import { getNextReleaseType } from '#/src/utils/get-next-release-type.js'
+import { getNextVersion } from '#/src/utils/get-next-version.js'
+import { getCommits } from '#/src/utils/git/get-commits.js'
+import { getCurrentBranch } from '#/src/utils/git/get-current-branch.js'
+import { getLatestRelease } from '#/src/utils/git/get-latest-release.js'
+import { bumpPackageJson } from '#/src/utils/bump-package-json.js'
+import { getTags } from '#/src/utils/git/get-tags.js'
+import { execAsync } from '#/src/utils/exec-async.js'
+import { commit } from '#/src/utils/git/commit.js'
+import { createTag } from '#/src/utils/git/create-tag.js'
+import { push } from '#/src/utils/git/push.js'
+import { getReleaseRefs } from '#/src/utils/release-notes/get-release-refs.js'
+import {
+  parseCommits,
+  type ParsedCommitWithHash,
+} from '#/src/utils/git/parse-commits.js'
+import { createComment } from '#/src/utils/github/create-comment.js'
+import { createReleaseComment } from '#/src/utils/create-release-comment.js'
+import { demandGitHubToken, demandNpmToken } from '#/src/utils/env.js'
+import { Notes } from '#/src/commands/notes.js'
+import { type ReleaseProfile } from '#/src/utils/get-config.js'
 
 interface PublishArgv {
   profile: string
@@ -197,7 +203,7 @@ export class Publish extends Command<PublishArgv> {
     // Execute the publishing script.
     await this.runReleaseScript()
 
-    const result = await until(async () => {
+    const [resultError, resultData] = await until(async () => {
       await this.createReleaseCommit()
       await this.createReleaseTag()
       await this.pushToRemote()
@@ -210,8 +216,8 @@ export class Publish extends Command<PublishArgv> {
     })
 
     // Handle any errors during the release process the same way.
-    if (result.error) {
-      this.log.error(result.error.message)
+    if (resultError) {
+      this.log.error(resultError.message)
 
       /**
        * @todo Suggest a standalone command to repeat the commit/tag/release
@@ -228,7 +234,7 @@ export class Publish extends Command<PublishArgv> {
     }
 
     // Comment on each relevant GitHub issue.
-    await this.commentOnIssues(commits, result.data.releaseUrl)
+    await this.commentOnIssues(commits, resultData.releaseUrl)
 
     if (this.argv.dryRun) {
       this.log.warn(
@@ -314,7 +320,7 @@ export class Publish extends Command<PublishArgv> {
       return
     }
 
-    const commitResult = await until(() => {
+    const [commitError, commitData] = await until(() => {
       return commit({
         files: ['package.json'],
         message,
@@ -322,14 +328,12 @@ export class Publish extends Command<PublishArgv> {
     })
 
     invariant(
-      commitResult.error == null,
+      commitError == null,
       'Failed to create release commit!\n',
-      commitResult.error,
+      commitError,
     )
 
-    this.log.info(
-      format('created a release commit at "%s"!', commitResult.data.hash),
-    )
+    this.log.info(format('created a release commit at "%s"!', commitData.hash))
 
     this.revertQueue.push(async () => {
       this.log.info('reverting the release commit...')
@@ -363,17 +367,13 @@ export class Publish extends Command<PublishArgv> {
       return
     }
 
-    const tagResult = await until(async () => {
+    const [tagError, tagData] = await until(async () => {
       const tag = await createTag(nextTag)
       await execAsync(`git push origin ${tag}`)
       return tag
     })
 
-    invariant(
-      tagResult.error == null,
-      'Failed to tag the release!\n',
-      tagResult.error,
-    )
+    invariant(tagError == null, 'Failed to tag the release!\n', tagError)
 
     this.revertQueue.push(async () => {
       const tagToRevert = this.context.nextRelease.tag
@@ -383,7 +383,7 @@ export class Publish extends Command<PublishArgv> {
       await execAsync(`git push --delete origin ${tagToRevert}`)
     })
 
-    this.log.info(format('created release tag "%s"!', tagResult.data))
+    this.log.info(format('created release tag "%s"!', tagData))
   }
 
   /**
@@ -411,12 +411,12 @@ export class Publish extends Command<PublishArgv> {
       return
     }
 
-    const pushResult = await until(() => push())
+    const [pushError] = await until(() => push())
 
     invariant(
-      pushResult.error == null,
+      pushError == null,
       'Failed to push changes to origin!\n',
-      pushResult.error,
+      pushError,
     )
 
     this.log.info(

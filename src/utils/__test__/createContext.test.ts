@@ -1,4 +1,7 @@
-import { ReleaseContext, createContext } from '../createContext'
+import {
+  type ReleaseContext,
+  createContext,
+} from '#/src/utils/create-context.js'
 
 it('creates a context object', () => {
   const context = createContext({

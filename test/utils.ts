@@ -1,4 +1,4 @@
-import * as path from 'path'
+import * as path from 'node:path'
 import * as portfinder from 'portfinder'
 import type { TeardownApi } from 'fs-teardown'
 import { Git } from 'node-git-server'

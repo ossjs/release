@@ -1,14 +1,13 @@
 import type { BuilderCallback } from 'yargs'
 import { format, invariant } from 'outvariant'
-import fetch from 'node-fetch'
-import { Command } from '../Command'
-import { getTag, TagPointer } from '../utils/git/getTag'
-import { getLatestRelease } from '../utils/git/getLatestRelease'
-import { getTags } from '../utils/git/getTags'
-import { getCommit } from '../utils/git/getCommit'
-import { getInfo } from '../utils/git/getInfo'
-import { execAsync } from '../utils/execAsync'
-import { demandGitHubToken } from '../utils/env'
+import { Command } from '#/src/Command.js'
+import { getTag, type TagPointer } from '#/src/utils/git/get-tag.js'
+import { getLatestRelease } from '#/src/utils/git/get-latest-release.js'
+import { getTags } from '#/src/utils/git/get-tags.js'
+import { getCommit } from '#/src/utils/git/get-commit.js'
+import { getInfo } from '#/src/utils/git/get-info.js'
+import { execAsync } from '#/src/utils/exec-async.js'
+import { demandGitHubToken } from '#/src/utils/env.js'
 
 interface Argv {
   _: [path: string, tag?: string]

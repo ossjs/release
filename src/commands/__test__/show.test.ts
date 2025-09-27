@@ -1,11 +1,11 @@
-import { rest } from 'msw'
-import { ReleaseStatus, Show } from '../../commands/show'
-import { log } from '../../logger'
-import { execAsync } from '../../utils/execAsync'
-import { getTag } from '../../utils/git/getTag'
-import { testEnvironment } from '../../../test/env'
-import { mockConfig } from '../../../test/fixtures'
-import { commit } from '../../utils/git/commit'
+import { http, HttpResponse } from 'msw'
+import { ReleaseStatus, Show } from '#/src/commands/show.js'
+import { log } from '#/src/logger.js'
+import { execAsync } from '#/src/utils/exec-async.js'
+import { getTag } from '#/src/utils/git/get-tag.js'
+import { testEnvironment } from '#/test/env.js'
+import { mockConfig } from '#/test/fixtures.js'
+import { commit } from '#/src/utils/git/commit.js'
 
 const { setup, reset, cleanup, api, createRepository } = testEnvironment({
   fileSystemPath: 'show',
@@ -48,10 +48,10 @@ it('displays info for explicit unpublished release', async () => {
   await createRepository('repo-with-unpublished-release')
 
   api.use(
-    rest.get(
+    http.get(
       'https://api.github.com/repos/:owner/:repo/releases/tags/v1.0.0',
-      (req, res, ctx) => {
-        return res(ctx.status(404), ctx.json({}))
+      () => {
+        return HttpResponse.json({}, { status: 404 })
       },
     ),
   )
@@ -79,15 +79,13 @@ it('displays info for explicit draft release', async () => {
   await createRepository('repo-with-draft-release')
 
   api.use(
-    rest.get(
+    http.get(
       'https://api.github.com/repos/:owner/:repo/releases/tags/v1.0.0',
-      (req, res, ctx) => {
-        return res(
-          ctx.json({
-            draft: true,
-            html_url: '/releases/v1.0.0',
-          }),
-        )
+      () => {
+        return HttpResponse.json({
+          draft: true,
+          html_url: '/releases/v1.0.0',
+        })
       },
     ),
   )
@@ -113,14 +111,12 @@ it('displays info for explicit public release', async () => {
   await createRepository('repo-with-public-release')
 
   api.use(
-    rest.get(
+    http.get(
       'https://api.github.com/repos/:owner/:repo/releases/tags/v1.0.0',
-      (req, res, ctx) => {
-        return res(
-          ctx.json({
-            html_url: '/releases/v1.0.0',
-          }),
-        )
+      () => {
+        return HttpResponse.json({
+          html_url: '/releases/v1.0.0',
+        })
       },
     ),
   )
@@ -146,10 +142,10 @@ it('displays info for implicit unpublished release', async () => {
   await createRepository('repo-with-implicit-unpublished-release')
 
   api.use(
-    rest.get(
+    http.get(
       'https://api.github.com/repos/:owner/:repo/releases/tags/v1.2.3',
-      (req, res, ctx) => {
-        return res(ctx.status(404), ctx.json({}))
+      () => {
+        return HttpResponse.json({}, { status: 404 })
       },
     ),
   )
@@ -179,15 +175,13 @@ it('displays info for explicit draft release', async () => {
   await createRepository('repo-with-explicit-draft-release')
 
   api.use(
-    rest.get(
+    http.get(
       'https://api.github.com/repos/:owner/:repo/releases/tags/v1.2.3',
-      (req, res, ctx) => {
-        return res(
-          ctx.json({
-            draft: true,
-            html_url: '/releases/v1.2.3',
-          }),
-        )
+      () => {
+        return HttpResponse.json({
+          draft: true,
+          html_url: '/releases/v1.2.3',
+        })
       },
     ),
   )
@@ -215,14 +209,12 @@ it('displays info for explicit public release', async () => {
   await createRepository('repo-with-explicit-public-release')
 
   api.use(
-    rest.get(
+    http.get(
       'https://api.github.com/repos/:owner/:repo/releases/tags/v1.2.3',
-      (req, res, ctx) => {
-        return res(
-          ctx.json({
-            html_url: '/releases/v1.2.3',
-          }),
-        )
+      () => {
+        return HttpResponse.json({
+          html_url: '/releases/v1.2.3',
+        })
       },
     ),
   )

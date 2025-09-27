@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.base.json",
+  "include": ["./typings", "**/*.test.ts", "./test"],
+  "references": [{ "path": "./tsconfig.src.json" }],
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+    "composite": true,
+    "target": "esnext",
+    "module": "nodenext",
+    "types": ["node", "vitest/globals"]
+  }
+}

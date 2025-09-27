@@ -2,7 +2,7 @@ name: release
 
 on:
   schedule:
-    - cron: '0 23 * * * '
+    - cron: '0 23 * * *'
   workflow_dispatch:
 
 jobs:
@@ -10,21 +10,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.CI_GITHUB_TOKEN }}
 
+      - uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18.14
+          node-version: 24
+          cache: 'pnpm'
           always-auth: true
           registry-url: https://registry.npmjs.org
-
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 7.12
 
       - name: Setup Git
         run: |
@@ -36,6 +35,12 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
 
       - name: Release
         run: pnpm release

@@ -1,11 +1,6 @@
 {
-  "extends": "./tsconfig.build",
-  "compilerOptions": {
-    "noEmit": true,
-    "target": "esnext",
-    "module": "esnext",
-    "declaration": false
-  },
-  "include": ["./typings", "./src/**/*.ts"],
-  "exclude": ["node_modules"]
+  "references": [
+    { "path": "./tsconfig.src.json" },
+    { "path": "./tsconfig.test.json" }
+  ]
 }
