@@ -3,23 +3,28 @@ import { readPackageJson } from '#/src/utils/read-package-json.js'
 
 export interface ReleaseCommentInput {
   context: ReleaseContext
+  profile: string
   releaseUrl: string
 }
 
 export function createReleaseComment(input: ReleaseCommentInput): string {
-  const { context, releaseUrl } = input
+  const { context, profile, releaseUrl } = input
   const packageJson = readPackageJson()
 
   return `## Released: ${context.nextRelease.tag} 🎉
 
-This has been released in ${context.nextRelease.tag}!
+This has been released in ${context.nextRelease.tag}.
 
 - 📄 [**Release notes**](${releaseUrl})
-- 📦 [npm package](https://www.npmjs.com/package/${packageJson.name}/v/${context.nextRelease.version})
+- 📦 [View on npm](https://www.npmjs.com/package/${packageJson.name}/v/${context.nextRelease.version})
 
-Make sure to always update to the latest version (\`npm i ${packageJson.name}@latest\`) to get the newest features and bug fixes.
+Get these changes by running the following command:
+
+\`\`\`
+npm i ${packageJson.name}@${input.profile}
+\`\`\`
 
 ---
 
-_Predictable release automation by [@ossjs/release](https://github.com/ossjs/release)_.`
+_Predictable release automation by [Release](https://github.com/ossjs/release)_.`
 }

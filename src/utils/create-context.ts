@@ -1,5 +1,5 @@
-import type { GitInfo } from '#/src/utils/git/getInfo.js'
-import type { TagPointer } from '#/src/utils/git/getTag.js'
+import type { GitInfo } from '#/src/utils/git/get-info.js'
+import type { TagPointer } from '#/src/utils/git/get-tag.js'
 
 export interface ReleaseContext {
   repo: GitInfo
