@@ -1,5 +1,8 @@
+import * as fs from 'node:fs'
 import * as path from 'node:path'
-import { invariant } from 'outvariant'
+import { InvariantError } from 'outvariant'
+import { Ajv } from 'ajv'
+import releaseConfigSchema from '#/schema.json' with { type: 'json' }
 
 export interface Config {
   profiles: Array<ReleaseProfile>
@@ -23,22 +26,26 @@ export interface ReleaseProfile {
 }
 
 export function getConfig(): Config {
-  const configPath = path.resolve(process.cwd(), 'release.config.json')
-  const config = require(configPath)
-  validateConfig(config)
+  const configPath = path.join(process.cwd(), 'release.config.json')
+  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'))
+  validateConfig(config, configPath)
 
   return config
 }
 
-function validateConfig(config: Config): void {
-  invariant(
-    Array.isArray(config.profiles),
-    'Failed to parse Release configuration: expected a root-level "tags" property to be an array but got %j',
-    config.profiles,
-  )
+function validateConfig(config: Config, configPath: string): void {
+  const ajv = new Ajv()
+  const validateConfig = ajv.compile(releaseConfigSchema)
+  const isConfigValid = validateConfig(config)
 
-  invariant(
-    config.profiles.length > 0,
-    'Failed to parse Release configuration: expected at least one profile to be defined',
-  )
+  if (!isConfigValid) {
+    validateConfig.errors?.forEach((error) => {
+      console.error(error)
+    })
+
+    throw new InvariantError(
+      'Failed to validate release configuration at "%s": the configuration is invalid. Please see the validation errors above for more details.',
+      configPath,
+    )
+  }
 }
