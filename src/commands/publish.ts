@@ -28,6 +28,7 @@ import { createReleaseComment } from '#/src/utils/create-release-comment.js'
 import { demandGitHubToken, demandNpmToken } from '#/src/utils/env.js'
 import { Notes } from '#/src/commands/notes.js'
 import { type ReleaseProfile } from '#/src/utils/get-config.js'
+import { lintPackage } from '../utils/lint-package.js'
 
 interface PublishArgv {
   profile: string
@@ -93,11 +94,11 @@ export class Publish extends Command<PublishArgv> {
 
     // Extract repository information (remote/owner/name).
     const repo = await getInfo().catch((error) => {
-      console.error(error)
+      this.log.error(error)
       throw new Error('Failed to get Git repository information')
     })
     const branchName = await getCurrentBranch().catch((error) => {
-      console.error(error)
+      this.log.error(error)
       throw new Error('Failed to get the current branch name')
     })
 
@@ -184,6 +185,21 @@ export class Publish extends Command<PublishArgv> {
         this.context.nextRelease.version,
       ),
     )
+
+    // Lint the package using "publint" for common issues early.
+    // No point in proceeding with the release if the package is faulty.
+    this.log.info('linting the packed package...')
+
+    const [lintError] = await until(() => {
+      return lintPackage()
+    })
+
+    if (lintError) {
+      this.log.error(lintError.message)
+      return process.exit(1)
+    }
+
+    this.log.info('package is healthy and ready for publishing!')
 
     // Bump the version in package.json without committing it.
     if (this.argv.dryRun) {
@@ -303,7 +319,7 @@ export class Publish extends Command<PublishArgv> {
     let revert: RevertAction | undefined
 
     while ((revert = this.revertQueue.pop())) {
-      await revert()
+      await revert?.()
     }
   }
 

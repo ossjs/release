@@ -458,8 +458,6 @@ setTimeout(() => process.exit(0), 150)
 })
 
 it('streams the release script stderr to the main process', async () => {
-  const repo = await createRepository('stream-stderr')
-
   api.use(
     graphql.query('GetCommitAuthors', () => {
       return HttpResponse.json({ data: {} })
@@ -479,10 +477,14 @@ it('streams the release script stderr to the main process', async () => {
     ),
   )
 
+  const repo = await createRepository('stream-stderr')
   await repo.fs.create({
     'package.json': JSON.stringify({
       name: 'publish-stream',
+      version: '0.0.0',
+      main: './index.js',
     }),
+    'index.js': '',
     'stream-stderr.js': `
 console.error('something')
 setTimeout(() => console.error('went wrong'), 100)
@@ -723,4 +725,63 @@ it('treats minor bumps as minor versions when "prerelease" is set to true', asyn
   )
 
   expect(log.info).toHaveBeenCalledWith('release "v0.1.0" completed!')
+})
+
+it('aborts the release if the package does not pass publint', async () => {
+  api.use(
+    graphql.query('GetCommitAuthors', () => {
+      return HttpResponse.json({ data: {} })
+    }),
+    githubLatestReleaseHandler,
+    http.post<never, never, GitHubRelease>(
+      'https://api.github.com/repos/:owner/:repo/releases',
+      () => {
+        return HttpResponse.json(
+          {
+            tag_name: 'v1.0.0',
+            html_url: '/releases/1',
+          },
+          { status: 201 },
+        )
+      },
+    ),
+  )
+
+  const repo = await createRepository('publish--lint-error')
+  await repo.fs.create({
+    'package.json': JSON.stringify({
+      name: 'test',
+      version: '0.0.0',
+      main: './non-existing-file.js',
+    }),
+  })
+
+  await repo.fs.exec(`git add . && git commit -m 'feat: new things'`)
+
+  const publish = new Publish(
+    {
+      profiles: [
+        {
+          name: 'latest',
+          use: 'echo "release script input: $RELEASE_VERSION"',
+        },
+      ],
+    },
+    {
+      _: [],
+      profile: 'latest',
+    },
+  )
+
+  await publish.run()
+
+  expect(process.exit).toHaveBeenCalledWith(1)
+  expect(log.error, 'Must print linting outcome').toHaveBeenCalledWith(
+    `Failed to lint the package at "${repo.fs.resolve()}": the package contains issues that can potentially produce a broken release. Please resolve the issues above and retry the release.`,
+  )
+
+  expect(
+    log.info,
+    'Must not log a successful release',
+  ).not.toHaveBeenCalledWith('release "v0.1.0" completed!')
 })

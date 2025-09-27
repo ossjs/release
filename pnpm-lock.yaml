@@ -50,6 +50,9 @@ importers:
       pino-pretty:
         specifier: ^7.6.1
         version: 7.6.1
+      publint:
+        specifier: ^0.3.13
+        version: 0.3.13
       rc:
         specifier: ^1.2.8
         version: 1.2.8
@@ -84,9 +87,6 @@ importers:
       prettier:
         specifier: ^3.6.2
         version: 3.6.2
-      publint:
-        specifier: ^0.3.13
-        version: 0.3.13
       tsdown:
         specifier: ^0.15.5
         version: 0.15.5(publint@0.3.13)(typescript@5.9.2)

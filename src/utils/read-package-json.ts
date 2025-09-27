@@ -4,7 +4,7 @@ import { execAsync } from '#/src/utils/exec-async.js'
 
 export function readPackageJson(): Record<string, any> {
   const packageJsonPath = path.resolve(
-    execAsync.contextOptions.cwd!.toString(),
+    execAsync.contextOptions.cwd?.toString() || process.cwd(),
     'package.json',
   )
 
