@@ -20,13 +20,17 @@
     "cli": "./bin/cli.js",
     "build": "tsdown",
     "test": "vitest",
-    "prerelease": "pnpm build && pnpm test",
+    "lint": "publint",
     "release": "pnpm cli publish"
   },
   "imports": {
-    "#/*": [
-      "./*"
-    ]
+    "#/*": "./*"
+  },
+  "exports": {
+    ".": {
+      "types": "./bin/build/index.ts",
+      "default": "./bin/build/index.js"
+    }
   },
   "devDependencies": {
     "@rolldown/binding-darwin-arm64": "1.0.0-beta.40",
@@ -35,6 +39,7 @@
     "node-git-server": "^1.0.0-beta.30",
     "portfinder": "^1.0.28",
     "prettier": "^3.6.2",
+    "publint": "^0.3.13",
     "tsdown": "^0.15.5",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
