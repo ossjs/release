@@ -1,4 +1,4 @@
-import * as yargs from 'yargs'
+import yargs from 'yargs'
 import { getConfig } from '#/src/utils/get-config.js'
 
 // Commands.
@@ -8,7 +8,7 @@ import { Notes } from '#/src/commands/notes.js'
 
 const config = getConfig()
 
-yargs
+yargs(process.argv.slice(2))
   .usage('$0 <command> [options]')
   .command(Publish.command, Publish.description, Publish.builder, (argv) =>
     new Publish(config, argv).run(),

@@ -7,17 +7,18 @@
   "author": "Artem Zakharchenko <kettanaito@gmail.com>",
   "license": "MIT",
   "bin": {
-    "release": "./bin/cli.sh"
+    "release": "./bin/cli.js"
   },
   "files": [
     "bin"
   ],
   "scripts": {
-    "start": "pnpm build -- -w",
-    "build": "tsc -p tsconfig.src.json",
+    "dev": "tsdown -w",
+    "cli": "./bin/cli.js",
+    "build": "tsdown",
     "test": "vitest",
     "prerelease": "pnpm build && pnpm test",
-    "release": "./bin/cli.sh publish"
+    "release": "pnpm cli publish"
   },
   "imports": {
     "#/*": [
@@ -25,11 +26,13 @@
     ]
   },
   "devDependencies": {
+    "@rolldown/binding-darwin-arm64": "1.0.0-beta.40",
     "fs-teardown": "^0.3.2",
     "msw": "^2.11.3",
     "node-git-server": "^1.0.0-beta.30",
     "portfinder": "^1.0.28",
     "prettier": "^3.6.2",
+    "tsdown": "^0.15.5",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   },
