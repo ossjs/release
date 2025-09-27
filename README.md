@@ -1,35 +1,48 @@
 <p align="center">
-  <img width="100" src="https://github.com/ossjs/release/blob/main/logo.png?raw=true" alt="Release library logo" />
+  <img width="100" src="https://github.com/ossjs/release/blob/main/logo.png?raw=true" alt="Release logo" />
 </p>
 <h1 align="center">Release</h1>
 
 <p align="center">Minimalistic, opinionated, and predictable release automation tool.</p>
 
-## General idea
+## Motivation
 
-Think [Prettier](https://prettier.io/) but for automated releases: minimalistic, opinionated, and, most of all, predictable. This tool combines the usual expectations from a release manager but brings practicality to the table.
+I created Release because I wanted an easy and reliable way to publish my libraries. Over the years, I've tried every release automation tool out there and found a bunch of issues, ideological mismatches, and lacking developer experience in every one of them. I've grown so tired solving release bugs that I decided it would be more productive to create my own tool and, turns out, it was! I've been using Release for my projects ever since and never looked back. It does exactly what I want, the way I want it.
 
-Here's the publishing pipeline this tool implements:
+You can keep reading to learn more about what Release does differently, jump to the [Getting started](#getting-started) section, or read how it [compares to the alternatives](#comparison).
 
-1. Analyzes commits since the latest published release.
-1. Determines next package version based on [Conventional Commits](https://www.conventionalcommits.org/) specification.
-1. Runs the publishing script.
-1. Creates release a tag and a release commit in Git.
-1. Creates a new release on GitHub.
-1. Pushes changes to GitHub.
-1. Comments on relevant GitHub issues and pull requests.
+## Release flow
 
-While this sounds like what any other release tool would do, the beauty lies in details. Let's take a more detailed look then at what this tool does differently.
+Release performs the following release flow:
 
-### Defaults
+1. Analyze commits since the last published release (tag);
+1. Determine the next package version per [Conventional Commits](https://www.conventionalcommits.org/);
+1. Lint your package via `publint` to prevent publishing broken packages;
+1. Run your publishing script (e.g. `npm publish`);
+1. Create a release tag and a release commit in Git;
+1. Create a new release with release notes on GitHub;
+1. Push the changes;
+1. Comment on relevant GitHub issues and pull request.
 
-**The workflow above is the default (and the only) behavior.**
+## Opinions
 
-That's the release process I personally want for all of my libraries, and that's why it's the default behavior for this tool. If you wish for the release automation tool to do something differently or skip certain steps, then this tool is not for you. I want a predictable, consistent release process, and that's largely achieved by the predictable release workflow for all my projects.
+Release is an _opinionated_ tool, which means it intentionally implements certain behaviors that I personally like without the ability to modify them. Let's talk about some of those behaviors.
 
-### Release commits
+### Release first, tag later
 
-**A release tag and a release commit are automatically created.**
+Unlike other automation tools, Release makes sure to create a release commit, tag it with the appropriate tag, and push those changes to Git **only after** your release pipeline succeeded. This keeps your Git history clean and makes recovering from failed releases much easier.
+
+### Quality check
+
+Release requires your package to pass the [`publint`](https://publint.dev/) check before proceeding with the publishing. This ensures that you are publshing a valid package that won't break your consumers. If you've ever misconfigured an `exports` condition, you know how neat this is.
+
+### GitHub-only
+
+Release is written to work with projects hosted on GitHub because that is where I release my software. It relies on GitHub repository URL schemes, creates GitHub releases, crawls issue and pull request references.
+
+### Release commit
+
+Release creates release commits in the `chore(release): v${NEXT_VERSION}` format. They will look like this in your Git history:
 
 ```
 commit cee5327f0c7fc9048de7a18ef7b5339acd648a98 (tag: v1.2.0)
@@ -37,44 +50,19 @@ Author: GitHub Actions <actions@github.com>
 Date:   Thu Apr 21 12:00:00 2022 +0100
 
     chore(release): v1.2.0
-
 ```
-
-Release is a part of the project's history so it's crucial to have explicit release marker in Git presented by a release commit and a release tag.
-
-### Respects publishing failures
-
-**If publishing fails, no release commits/tags will be created or pushed to Git.**
-
-Here's an average experience you'd have if your release (read "publishing to NPM") fails with an average release manager in the wild:
-
-1. Process is terminated but the release tags/commits have already been created _and pushed_ to remote.
-1. You need to manually revert the release commit.
-1. You need to manually delete the release tag from everywhere.
-1. You need to manually delete any other side-effects your release has (i.e. GitHub release).
-
-For an automated tooling there's sure a lot of the word "manual" in this scenario. The worst part is that you cannot just "retry" the release—you need to clean up all the artifacts the release manager has left you otherwise it'll treat the release as successful, stating there's nothing new to release.
-
-The bottom line is: failed releases happen. The package registry may be down, your publishing credentials may be wrong, or the entire internet may just decide to take a hiccup. The tooling you use should acknowledge that and support you in those failure cases, not leave you on your own to do manual cleanup chores after the automated solution.
-
-## Opinionated behaviors
-
-- GitHub-only. This tool is designed for projects hosted on GitHub.
-- Release tag has the following format: `v${version}` (i.e. `v1.2.3`).
-- Release commit has the following format: `chore(release): v${version}`.
-- Does not generate or update the `CHANGELOG` file. This tool generates automatic release notes from your commits and creates a new GitHub release with those notes. Use GitHub releases instead of changelogs.
 
 ## Getting started
 
 ### Install
 
 ```sh
-npm install @ossjs/release --save-dev
+npm i @ossjs/release -D
 ```
 
 ### Create configuration
 
-Create a `release.config.json` file at the root of your project. Open the newly created file and specify the `use` command that publishes your package:
+Create a `release.config.json` file at the root of your project. Open the newly created file and create a new release profile:
 
 ```js
 // release.config.json
