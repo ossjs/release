@@ -25,6 +25,7 @@ it('creates a release comment for the "latest" profile', async () => {
   await repo.fs.create({
     'package.json': JSON.stringify({
       name: 'my-package',
+      version: '0.0.0',
     }),
   })
 
@@ -64,6 +65,7 @@ it('respects custom release profiles in the release comment', async () => {
   await repo.fs.create({
     'package.json': JSON.stringify({
       name: 'my-package',
+      version: '0.0.0',
     }),
   })
 

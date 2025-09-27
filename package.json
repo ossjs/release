@@ -41,7 +41,6 @@
     "node-git-server": "^1.0.0-beta.30",
     "portfinder": "^1.0.28",
     "prettier": "^3.6.2",
-    "publint": "^0.3.13",
     "tsdown": "^0.15.5",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
@@ -61,6 +60,7 @@
     "outvariant": "^1.4.3",
     "pino": "^7.10.0",
     "pino-pretty": "^7.6.1",
+    "publint": "^0.3.13",
     "rc": "^1.2.8",
     "registry-auth-token": "^5.1.0",
     "semver": "^7.5.4",
