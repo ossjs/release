@@ -13,7 +13,9 @@
     "node": ">=20.0.0"
   },
   "files": [
-    "bin"
+    "./bin",
+    "./src",
+    "./schema.json"
   ],
   "scripts": {
     "dev": "tsdown -w",
