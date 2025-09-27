@@ -1,7 +1,8 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import { InvariantError } from 'outvariant'
+import { invariant, InvariantError } from 'outvariant'
 import { Ajv } from 'ajv'
+import { log } from '#/src/logger.js'
 import releaseConfigSchema from '#/schema.json' with { type: 'json' }
 
 export interface Config {
@@ -25,8 +26,15 @@ export interface ReleaseProfile {
   prerelease?: boolean
 }
 
-export function getConfig(): Config {
-  const configPath = path.join(process.cwd(), 'release.config.json')
+export function getConfig(projectPath: string): Config {
+  const configPath = path.join(projectPath, 'release.config.json')
+
+  invariant(
+    fs.existsSync(configPath),
+    'Failed to resolve release configuration at "%s": the configuration file is missing',
+    configPath,
+  )
+
   const config = JSON.parse(fs.readFileSync(configPath, 'utf8'))
   validateConfig(config, configPath)
 
@@ -34,13 +42,16 @@ export function getConfig(): Config {
 }
 
 function validateConfig(config: Config, configPath: string): void {
-  const ajv = new Ajv()
+  const ajv = new Ajv({
+    strictSchema: true,
+    validateSchema: true,
+  })
   const validateConfig = ajv.compile(releaseConfigSchema)
   const isConfigValid = validateConfig(config)
 
   if (!isConfigValid) {
     validateConfig.errors?.forEach((error) => {
-      console.error(error)
+      log.error(error)
     })
 
     throw new InvariantError(

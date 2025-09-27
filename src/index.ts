@@ -6,7 +6,7 @@ import { Show } from '#/src/commands/show.js'
 import { Publish } from '#/src/commands/publish.js'
 import { Notes } from '#/src/commands/notes.js'
 
-const config = getConfig()
+const config = getConfig(process.cwd())
 
 yargs(process.argv.slice(2))
   .usage('$0 <command> [options]')
