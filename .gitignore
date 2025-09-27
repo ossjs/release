@@ -1,4 +1,4 @@
 node_modules
 bin/**
-!bin/cli.sh
+!bin/cli.js
 .tmp
