@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import { invariant } from 'outvariant'
 
 export const requiredGitHubTokenScopes: string[] = [

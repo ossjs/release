@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import createIssueParser from 'issue-parser'
 import { getInfo, type GitInfo } from '#/src/utils/git/get-info.js'
 import type { ParsedCommitWithHash } from '#/src/utils/git/parse-commits.js'

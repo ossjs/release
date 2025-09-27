@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import { invariant } from 'outvariant'
 import { getInfo } from '#/src/utils/git/get-info.js'
 

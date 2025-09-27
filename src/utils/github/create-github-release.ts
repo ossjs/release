@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import { format } from 'outvariant'
 import { lt } from 'semver'
 import type { ReleaseContext } from '#/src/utils/create-context.js'

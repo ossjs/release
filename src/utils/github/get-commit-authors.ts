@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import { format } from 'outvariant'
 import { getInfo } from '#/src/utils/git/get-info.js'
 import type { ParsedCommitWithHash } from '#/src/utils/git/parse-commits.js'

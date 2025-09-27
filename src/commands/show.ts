@@ -1,6 +1,5 @@
 import type { BuilderCallback } from 'yargs'
 import { format, invariant } from 'outvariant'
-import fetch from 'node-fetch'
 import { Command } from '#/src/Command.js'
 import { getTag, type TagPointer } from '#/src/utils/git/get-tag.js'
 import { getLatestRelease } from '#/src/utils/git/get-latest-release.js'

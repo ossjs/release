@@ -1,5 +1,4 @@
 import { invariant } from 'outvariant'
-import fetch from 'node-fetch'
 import { getInfo } from '#/src/utils/git/get-info.js'
 
 export interface GitHubRelease {
