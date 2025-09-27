@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.base.json",
-  "include": ["./typings", "./src"],
+  "include": ["./typings", "./schema.json", "./src"],
   "exclude": ["node_modules", "**/*.test.ts"],
   "compilerOptions": {
     "composite": true,
