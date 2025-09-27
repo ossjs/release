@@ -40,6 +40,10 @@ Release requires your package to pass the [`publint`](https://publint.dev/) chec
 
 Release is written to work with projects hosted on GitHub because that is where I release my software. It relies on GitHub repository URL schemes, creates GitHub releases, crawls issue and pull request references.
 
+### Configuration-driven
+
+Release is driven by the release configuration file. It does not use labels, tags, or other things to trigger or influence the release. It does not require a release pull request. You describe the release profiles, create an automated CI job, and get a continuous release pipeline. See the [recipes](#recipes) on how to configure and use Release in GitHub Actions.
+
 ### Release commit
 
 Release creates release commits in the `chore(release): v${NEXT_VERSION}` format. They will look like this in your Git history:
