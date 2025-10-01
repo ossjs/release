@@ -188,3 +188,75 @@ it('returns "patch" for a patch change if "prerelease" option is set', async () 
     ),
   ).toBe('patch')
 })
+
+it('ignores "breaking change" text appearing in the commit message', async () => {
+  expect(
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({ subject: 'fix: some breaking change' }),
+      ]),
+    ),
+  ).toBe('patch')
+
+  expect(
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({ subject: 'feat: some breaking change' }),
+      ]),
+    ),
+  ).toBe('minor')
+
+  expect(
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'feat: new feature',
+          body: 'this is not a breaking change',
+        }),
+      ]),
+    ),
+  ).toBe('minor')
+
+  expect(
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'docs: abc',
+          body: 'should this be a BREAKING CHANGE?',
+        }),
+      ]),
+    ),
+  ).toBe(null)
+})
+
+it('ignores the exclamation mark in the commit message', async () => {
+  expect(
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'fix: adds "!" as supported character',
+        }),
+      ]),
+    ),
+  ).toBe('patch')
+
+  expect(
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'feat: adds "!" as supported character',
+        }),
+      ]),
+    ),
+  ).toBe('minor')
+
+  expect(
+    getNextReleaseType(
+      await parseCommits([
+        mockCommit({
+          subject: 'docs: adds "!" as supported character',
+        }),
+      ]),
+    ),
+  ).toBe(null)
+})
