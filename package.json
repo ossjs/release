@@ -3,7 +3,7 @@
   "name": "@ossjs/release",
   "version": "0.10.0",
   "description": "Minimalistic, opinionated, and predictable release automation tool.",
-  "main": "./bin/build/index.js",
+  "main": "./bin/build/index.mjs",
   "author": "Artem Zakharchenko <kettanaito@gmail.com>",
   "license": "MIT",
   "bin": {
@@ -30,8 +30,8 @@
   },
   "exports": {
     ".": {
-      "types": "./bin/build/index.ts",
-      "default": "./bin/build/index.js"
+      "types": "./bin/build/index.d.mts",
+      "default": "./bin/build/index.mjs"
     }
   },
   "devDependencies": {
