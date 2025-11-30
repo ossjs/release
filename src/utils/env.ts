@@ -11,12 +11,3 @@ export async function demandGitHubToken(): Promise<void> {
 
   await validateAccessToken(GITHUB_TOKEN)
 }
-
-export async function demandNpmToken(): Promise<void> {
-  const { NODE_AUTH_TOKEN, NPM_AUTH_TOKEN } = process.env
-
-  invariant(
-    NODE_AUTH_TOKEN || NPM_AUTH_TOKEN,
-    'Failed to publish the package: neither "NODE_AUTH_TOKEN" nor "NPM_AUTH_TOKEN" environment variables were provided.',
-  )
-}
