@@ -25,7 +25,7 @@ import {
 } from '#/src/utils/git/parse-commits.js'
 import { createComment } from '#/src/utils/github/create-comment.js'
 import { createReleaseComment } from '#/src/utils/create-release-comment.js'
-import { demandGitHubToken, demandNpmToken } from '#/src/utils/env.js'
+import { demandGitHubToken } from '#/src/utils/env.js'
 import { Notes } from '#/src/commands/notes.js'
 import { type ReleaseProfile } from '#/src/utils/get-config.js'
 import { lintPackage } from '../utils/lint-package.js'
@@ -81,11 +81,6 @@ export class Publish extends Command<PublishArgv> {
     this.profile = profileDefinition
 
     await demandGitHubToken().catch((error) => {
-      this.log.error(error.message)
-      process.exit(1)
-    })
-
-    await demandNpmToken().catch((error) => {
       this.log.error(error.message)
       process.exit(1)
     })
