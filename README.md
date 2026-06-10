@@ -83,7 +83,12 @@ Create a `release.config.json` file at the root of your project. Open the newly 
 
 ### Generate GitHub Personal Access Token
 
-Generate a [Personal Access Token](https://github.com/settings/tokens/new?scopes=repo,admin:repo_hook,admin:org_hook) for your GitHub user with the following permissions:
+Generate a [fine-grained Personal Access Token](https://github.com/settings/personal-access-tokens/new?contents=write&issues=write) for your GitHub user. Grant the token access to your repository and the following repository permissions:
+
+- `Contents`: Read and write (create release commits, tags, and GitHub releases)
+- `Issues`: Read and write (comment on the issues referenced by the release)
+
+Alternatively, you can use a classic [Personal Access Token](https://github.com/settings/tokens/new?scopes=repo,admin:repo_hook,admin:org_hook) with the following scopes:
 
 - `repo`
 - `admin:repo_hook`
