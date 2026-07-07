@@ -786,3 +786,62 @@ it('aborts the release if the package does not pass publint', async () => {
     'Must not log a successful release',
   ).not.toHaveBeenCalledWith('release "v0.1.0" completed!')
 })
+
+it('publishes the release if publint reports only warnings', async () => {
+  api.use(
+    graphql.query('GetCommitAuthors', () => {
+      return HttpResponse.json({ data: {} })
+    }),
+    githubLatestReleaseHandler,
+    http.post<never, never, GitHubRelease>(
+      'https://api.github.com/repos/:owner/:repo/releases',
+      () => {
+        return HttpResponse.json(
+          {
+            tag_name: 'v1.0.0',
+            html_url: '/releases/1',
+          },
+          { status: 201 },
+        )
+      },
+    ),
+  )
+
+  const repo = await createRepository('publish--lint-warning')
+  await repo.fs.create({
+    'package.json': JSON.stringify({
+      name: 'test',
+      version: '0.0.0',
+      main: './index.js',
+    }),
+    // ESM syntax in a ".js" file of a CJS package
+    // makes publint report a "FILE_INVALID_FORMAT" warning.
+    'index.js': 'export default {}',
+  })
+
+  await repo.fs.exec(`git add . && git commit -m 'feat: new things'`)
+
+  const publish = new Publish(
+    {
+      profiles: [
+        {
+          name: 'latest',
+          use: 'echo "release script input: $RELEASE_VERSION"',
+        },
+      ],
+    },
+    {
+      _: [],
+      profile: 'latest',
+    },
+  )
+
+  await publish.run()
+
+  expect(process.exit).not.toHaveBeenCalledWith(1)
+  expect(log.warn).toHaveBeenCalledWith(
+    expect.stringContaining('is written in'),
+  )
+  expect(log.error).not.toHaveBeenCalled()
+  expect(log.info).toHaveBeenCalledWith('release "v0.1.0" completed!')
+})

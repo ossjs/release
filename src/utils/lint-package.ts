@@ -16,7 +16,7 @@ export async function lintPackage(): Promise<void> {
     const logLevel = message.type === 'error' ? 'error' : 'warn'
     log[logLevel](formatMessage(message, pkg))
 
-    if (message.type === 'error' || message.type === 'warning') {
+    if (message.type === 'error') {
       isValid = false
     }
   }
