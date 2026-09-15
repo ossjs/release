@@ -11,6 +11,7 @@ import { getNextReleaseType } from '#/src/utils/get-next-release-type.js'
 import { getNextVersion } from '#/src/utils/get-next-version.js'
 import { getCommits } from '#/src/utils/git/get-commits.js'
 import { getCurrentBranch } from '#/src/utils/git/get-current-branch.js'
+import { getBranchDivergence } from '#/src/utils/git/get-branch-divergence.js'
 import { getLatestRelease } from '#/src/utils/git/get-latest-release.js'
 import { bumpPackageJson } from '#/src/utils/bump-package-json.js'
 import { getTags } from '#/src/utils/git/get-tags.js'
@@ -157,6 +158,35 @@ export class Publish extends Command<PublishArgv> {
     })
     if (!nextReleaseType) {
       this.log.warn('committed changes do not bump version, skipping...')
+      return
+    }
+
+    /**
+     * Make sure the branch can be pushed to before publishing anything.
+     * The package is published before the release commit and tag are pushed,
+     * so a rejected push would leave the package published without a release.
+     */
+    const divergence = await getBranchDivergence(branchName)
+
+    if (divergence.ahead > 0) {
+      this.log.error(
+        format(
+          'Failed to publish: branch "%s" has %d unpushed commit(s). Push them to origin and retry the release.',
+          branchName,
+          divergence.ahead,
+        ),
+      )
+      return process.exit(1)
+    }
+
+    if (divergence.behind > 0) {
+      this.log.warn(
+        format(
+          'branch "%s" moved to %s since this release was started, skipping (the release for that commit will publish these changes)...',
+          branchName,
+          divergence.remoteHash,
+        ),
+      )
       return
     }
 

@@ -17,6 +17,7 @@ Release performs the following release flow:
 
 1. Analyze commits since the last published release (tag);
 1. Determine the next package version per [Conventional Commits](https://www.conventionalcommits.org/);
+1. Verify that the branch is in sync with its remote counterpart;
 1. Lint your package via `publint` to prevent publishing broken packages;
 1. Run your publishing script (e.g. `npm publish`);
 1. Create a release tag and a release commit in Git;
@@ -31,6 +32,10 @@ Release is an _opinionated_ tool, which means it intentionally implements certai
 ### Release first, tag later
 
 Unlike other automation tools, Release makes sure to create a release commit, tag it with the appropriate tag, and push those changes to Git **only after** your release pipeline succeeded. This keeps your Git history clean and makes recovering from failed releases much easier.
+
+### Remote in sync
+
+Since the package is published before the release commit is pushed, Release verifies that the current branch is in sync with `origin` before doing anything. If the remote branch has moved on (e.g. two pull requests merged back-to-back in CI), the release is skipped and left to the pipeline run for the newer commit. If the branch has unpushed commits, the release fails.
 
 ### Quality check
 
