@@ -64,6 +64,7 @@ it('publishes the next minor version', async () => {
     }),
   })
   await repo.fs.exec(`git add . && git commit -m 'feat: new things'`)
+  await execAsync('git push')
 
   const publish = new Publish(
     {
@@ -150,6 +151,7 @@ it('releases a new version after an existing version', async () => {
   await execAsync('git tag v1.2.3')
   await execAsync(`git commit -m 'fix: stuff' --allow-empty`)
   await execAsync(`git commit -m 'feat: stuff' --allow-empty`)
+  await execAsync('git push')
 
   const publish = new Publish(
     {
@@ -261,6 +263,7 @@ it('comments on relevant github issues', async () => {
   await repo.fs.exec(
     `git commit -m 'feat: supports graphql (#10)' --allow-empty`,
   )
+  await execAsync('git push')
 
   const publish = new Publish(
     {
@@ -318,6 +321,7 @@ it('supports dry-run mode', async () => {
   await execAsync('git tag v1.2.3')
   await execAsync(`git commit -m 'fix: stuff (#2)' --allow-empty`)
   await execAsync(`git commit -m 'feat: stuff' --allow-empty`)
+  await execAsync('git push')
 
   const publish = new Publish(
     {
@@ -431,6 +435,7 @@ setTimeout(() => process.exit(0), 150)
   await execAsync(
     `git commit -m 'feat: stream release script stdout' --allow-empty`,
   )
+  await execAsync('git push')
 
   const publish = new Publish(
     {
@@ -495,6 +500,7 @@ setTimeout(() => process.exit(0), 150)
   await execAsync(
     `git commit -m 'feat: stream release script stderr' --allow-empty`,
   )
+  await execAsync('git push')
 
   const publish = new Publish(
     {
@@ -555,6 +561,7 @@ it('only pushes the newly created release tag to the remote', async () => {
 
   // Create a new commit.
   await execAsync(`git commit -m 'feat: new feature' --allow-empty`)
+  await execAsync('git push')
 
   const publish = new Publish(
     {
@@ -609,6 +616,7 @@ it('treats breaking changes as minor versions when "prerelease" is set to true',
   await repo.fs.exec(
     `git add . && git commit -m 'feat: new things' -m 'BREAKING CHANGE: beware'`,
   )
+  await execAsync('git push')
 
   const publish = new Publish(
     {
@@ -683,6 +691,7 @@ it('treats minor bumps as minor versions when "prerelease" is set to true', asyn
     }),
   })
   await repo.fs.exec(`git add . && git commit -m 'feat: new things'`)
+  await execAsync('git push')
 
   const publish = new Publish(
     {
@@ -758,6 +767,7 @@ it('aborts the release if the package does not pass publint', async () => {
   })
 
   await repo.fs.exec(`git add . && git commit -m 'feat: new things'`)
+  await execAsync('git push')
 
   const publish = new Publish(
     {
@@ -785,6 +795,110 @@ it('aborts the release if the package does not pass publint', async () => {
     log.info,
     'Must not log a successful release',
   ).not.toHaveBeenCalledWith('release "v0.1.0" completed!')
+})
+
+it('skips the release if the branch moved on the remote', async () => {
+  api.use(
+    graphql.query('GetCommitAuthors', () => {
+      return HttpResponse.json({ data: {} })
+    }),
+    githubLatestReleaseHandler,
+  )
+
+  const repo = await createRepository('publish--branch-behind')
+  await repo.fs.create({
+    'package.json': JSON.stringify({
+      name: 'test',
+      version: '0.0.0',
+    }),
+  })
+  // Stage the package file only: the test git server keeps its own
+  // repository inside this directory, and resetting the branch below
+  // must not touch it.
+  await repo.fs.exec(`git add package.json && git commit -m 'feat: new things'`)
+  await repo.fs.exec('git push')
+
+  // Another commit lands on the remote after this release was started.
+  await repo.fs.exec(`git commit -m 'feat: newer things' --allow-empty`)
+  await repo.fs.exec('git push')
+  const { stdout: remoteHead } = await repo.fs.exec('git rev-parse HEAD')
+  await repo.fs.exec('git reset --hard HEAD~1')
+
+  const publish = new Publish(
+    {
+      profiles: [
+        {
+          name: 'latest',
+          use: 'echo "release script input: $RELEASE_VERSION"',
+        },
+      ],
+    },
+    {
+      _: [],
+      profile: 'latest',
+    },
+  )
+  await publish.run()
+
+  expect(log.warn).toHaveBeenCalledWith(
+    `branch "main" moved to ${remoteHead.trim()} since this release was started, skipping (the release for that commit will publish these changes)...`,
+  )
+  expect(log.error).not.toHaveBeenCalled()
+  expect(process.exit).not.toHaveBeenCalled()
+
+  // Must not publish, bump, commit, or tag anything.
+  expect(process.stdout.write).not.toHaveBeenCalledWith(
+    expect.stringContaining('release script input'),
+  )
+  expect(
+    JSON.parse(await repo.fs.readFile('package.json', 'utf8')),
+  ).toHaveProperty('version', '0.0.0')
+  expect(await repo.fs.exec('git tag')).toHaveProperty('stdout', '')
+  expect(log.info).not.toHaveBeenCalledWith('release "v0.1.0" completed!')
+})
+
+it('aborts the release if the branch has unpushed commits', async () => {
+  api.use(
+    graphql.query('GetCommitAuthors', () => {
+      return HttpResponse.json({ data: {} })
+    }),
+    githubLatestReleaseHandler,
+  )
+
+  const repo = await createRepository('publish--branch-ahead')
+  await repo.fs.create({
+    'package.json': JSON.stringify({
+      name: 'test',
+      version: '0.0.0',
+    }),
+  })
+  // Committed but never pushed.
+  await repo.fs.exec(`git add package.json && git commit -m 'feat: new things'`)
+
+  const publish = new Publish(
+    {
+      profiles: [
+        {
+          name: 'latest',
+          use: 'echo "release script input: $RELEASE_VERSION"',
+        },
+      ],
+    },
+    {
+      _: [],
+      profile: 'latest',
+    },
+  )
+  await publish.run()
+
+  expect(process.exit).toHaveBeenCalledWith(1)
+  expect(log.error).toHaveBeenCalledWith(
+    'Failed to publish: branch "main" has 1 unpushed commit(s). Push them to origin and retry the release.',
+  )
+  expect(process.stdout.write).not.toHaveBeenCalledWith(
+    expect.stringContaining('release script input'),
+  )
+  expect(log.info).not.toHaveBeenCalledWith('release "v0.1.0" completed!')
 })
 
 it('publishes the release if publint reports only warnings', async () => {
@@ -820,6 +934,7 @@ it('publishes the release if publint reports only warnings', async () => {
   })
 
   await repo.fs.exec(`git add . && git commit -m 'feat: new things'`)
+  await execAsync('git push')
 
   const publish = new Publish(
     {
